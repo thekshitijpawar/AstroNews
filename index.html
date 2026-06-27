@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Navars Edutech | Space Operations Live</title>
+  <style>
+    :root{
+      --bg:#070c1b; --bg2:#0c152d; --panel:#0f1b37; --panel2:#0c1731;
+      --line:#22345f; --line-soft:#1a2a4e; --text:#ecf3ff; --muted:#9fb2d9;
+      --cyan:#58d7ff; --shadow:0 12px 28px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;height:100%;overflow:hidden;
+      font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 5% -20%, #16306a 0%, transparent 45%),
+        radial-gradient(900px 600px at 95% -15%, #2a1e59 0%, transparent 45%),
+        linear-gradient(180deg,var(--bg),var(--bg2));
+    }
+
+    .hud{height:100vh;display:grid;grid-template-rows:86px 1fr 32px;gap:10px;padding:10px}
+
+    .top{
+      border:1px solid var(--line);border-radius:14px;
+      background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+      display:flex;justify-content:space-between;align-items:center;padding:10px 14px;
+      box-shadow:var(--shadow);
+    }
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .logo{
+      width:54px;height:54px;border-radius:10px;object-fit:contain;background:#fff;padding:5px;
+      border:1px solid #d8e3ff;
+    }
+    .title{
+      font-size:1.02rem;font-weight:800;text-transform:uppercase;letter-spacing:.85px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .sub{
+      margin-top:2px;color:var(--muted);font-size:.78rem;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+
+    .status{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{
+      border:1px solid var(--line);background:rgba(255,255,255,.03);
+      border-radius:999px;padding:6px 10px;font-size:.76rem;color:#cddcff;font-weight:600;
+    }
+
+    .grid{min-height:0;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px}
+    .stack{min-height:0;display:grid;grid-template-rows:1fr 1fr;gap:10px}
+
+    .panel{
+      min-height:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+      background:linear-gradient(180deg,var(--panel),var(--panel2));
+      box-shadow:var(--shadow);display:flex;flex-direction:column;position:relative;
+    }
+    .ph{
+      height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;
+      border-bottom:1px solid var(--line-soft);font-size:.82rem;font-weight:800;
+      text-transform:uppercase;letter-spacing:.8px;background:rgba(255,255,255,.02);
+    }
+    .tag{
+      border:1px solid rgba(88,215,255,.35);color:#b8eeff;background:rgba(88,215,255,.1);
+      font-size:.64rem;padding:2px 8px;border-radius:999px;font-weight:800;letter-spacing:.6px;
+    }
+
+    .pb{min-height:0;height:100%;position:relative;overflow:hidden}
+    .track{
+      position:absolute;inset:0;padding:10px;display:flex;flex-direction:column;gap:8px;
+      animation:scroll var(--d,45s) linear infinite;will-change:transform;
+    }
+    .panel:hover .track{animation-play-state:paused}
+    @keyframes scroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+
+    .card{
+      border:1px solid #2a3d6d;border-radius:12px;
+      background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
+      padding:9px;
+    }
+
+    .news-card{display:grid;grid-template-columns:84px 1fr;gap:10px;align-items:start}
+    .thumb{
+      width:84px;height:64px;border-radius:8px;object-fit:cover;border:1px solid #30487b;
+      background:#0b1226;display:block;
+    }
+    .thumb.fallback{
+      display:flex;align-items:center;justify-content:center;color:#9cb2dd;
+      font-size:.66rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+      background:linear-gradient(135deg,#102248,#1a2e5f);
+    }
+
+    .t{font-size:.9rem;font-weight:700;line-height:1.25;margin-bottom:4px;color:#f2f7ff}
+    .m{font-size:.77rem;color:var(--muted);line-height:1.35}
+    .meta-line{margin-top:5px;font-size:.7rem;color:#8da6d8}
+    .link{color:#9be2ff;text-decoration:none;border-bottom:1px dotted rgba(155,226,255,.5)}
+
+    .ticker{
+      border:1px solid var(--line);border-radius:10px;overflow:hidden;
+      display:flex;align-items:center;background:rgba(255,255,255,.03);box-shadow:var(--shadow);
+    }
+    .label{
+      padding:0 11px;height:100%;display:flex;align-items:center;border-right:1px solid var(--line);
+      font-size:.72rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:#cfe1ff;
+    }
+    .run{white-space:nowrap;padding-left:100%;animation:ticker 42s linear infinite;font-size:.82rem;color:#dfebff}
+    @keyframes ticker{to{transform:translateX(-100%)}}
+
+    @media (max-width:1320px){
+      html,body{overflow:auto}
+      .hud{height:auto;min-height:100vh;grid-template-rows:86px auto 32px}
+      .grid{grid-template-columns:1fr}
+      .stack{grid-template-rows:unset}
+      .pb{height:340px}
+    }
+  </style>
+</head>
+<body>
+<div class="hud">
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="navars-logo.png" alt="Navars Edutech Logo" />
+      <div>
+        <div class="title">Navars Edutech • Space Operations Live</div>
+        <div class="sub">Universe Today • Phys.org Space News • Astronomy.com • Live Launches</div>
+      </div>
+    </div>
+    <div class="status">
+      <span class="pill" id="clockUtc">UTC --:--:--</span>
+      <span class="pill" id="clockLocal">LOCAL --:--:--</span>
+      <span class="pill" id="statusText">Initializing…</span>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="panel">
+      <div class="ph">Astronomy News Intelligence <span class="tag">LIVE FEED</span></div>
+      <div class="pb"><div id="news" class="track" style="--d:58s"></div></div>
+    </section>
+
+    <div class="stack">
+      <section class="panel">
+        <div class="ph">Upcoming Rocket Launches <span class="tag">TRACKING</span></div>
+        <div class="pb"><div id="launches" class="track" style="--d:46s"></div></div>
+      </section>
+      <section class="panel">
+        <div class="ph">Upcoming Celestial Events <span class="tag">SKY WATCH</span></div>
+        <div class="pb"><div id="events" class="track" style="--d:46s"></div></div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="ph">Command Highlights <span class="tag">SUMMARY</span></div>
+      <div class="pb"><div id="highlights" class="track" style="--d:40s"></div></div>
+    </section>
+  </main>
+
+  <footer class="ticker">
+    <div class="label">Telemetry Stream</div>
+    <div id="ticker" class="run">Loading real-time space intelligence…</div>
+  </footer>
+</div>
+
+<script>
+  const REFRESH_MS = 10 * 60 * 1000;
+  const $ = (id) => document.getElementById(id);
+
+  function fmtDateTime(v){
+    const d = new Date(v);
+    return isNaN(d) ? "TBD" : d.toLocaleString([], {
+      year:"numeric", month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"
+    });
+  }
+
+  function fmtDate(v){
+    const d = new Date(v);
+    return isNaN(d) ? "TBD" : d.toLocaleDateString([], {
+      year:"numeric", month:"short", day:"numeric"
+    });
+  }
+
+  function stripHtml(s=""){
+    return String(s).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+  }
+
+  function baseCard(title, meta){
+    return `<article class="card"><div class="t">${title}</div><div class="m">${meta}</div></article>`;
+  }
+
+  function newsCard(n){
+    const hasImg = !!n.imageUrl;
+    const img = hasImg
+      ? `<img class="thumb" src="${n.imageUrl}" alt="news image" loading="lazy"
+             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb fallback',textContent:'No Image'}))">`
+      : `<div class="thumb fallback">No Image</div>`;
+
+    const cleanSummary = stripHtml(n.summary || "");
+    const shortSummary = cleanSummary.length > 130 ? cleanSummary.slice(0,130) + "..." : cleanSummary;
+
+    return `
+      <article class="card news-card">
+        ${img}
+        <div>
+          <div class="t">${n.title || "Untitled"}</div>
+          <div class="m">${shortSummary}</div>
+          <div class="meta-line">${n.source || "Unknown source"} • ${fmtDateTime(n.publishedAt)}</div>
+          ${n.url ? `<div class="meta-line"><a class="link" href="${n.url}" target="_blank" rel="noopener">Read article ↗</a></div>` : ""}
+        </div>
+      </article>
+    `;
+  }
+
+  function loop(items){ return items.concat(items); }
+
+  function setTrack(node, cards){
+    const safe = cards.length ? cards : [baseCard("No live data available", "Feed temporarily unavailable.")];
+    node.innerHTML = loop(safe).join("");
+  }
+
+  async function safeFetch(url){
+    try{
+      const r = await fetch(url);
+      if(!r.ok) throw new Error(`${url} -> ${r.status}`);
+      return await r.json();
+    }catch(err){
+      return { ok:false, items:[], error:err.message };
+    }
+  }
+
+  async function loadAll(){
+    $("statusText").textContent = "Updating feeds…";
+
+    const [newsRes, launchesRes, eventsRes] = await Promise.all([
+      safeFetch("/api/news"),
+      safeFetch("/api/launches"),
+      safeFetch("/api/events")
+    ]);
+
+    const news = newsRes.items || [];
+    const launches = launchesRes.items || [];
+    const events = eventsRes.items || [];
+
+    setTrack(
+      $("news"),
+      news.slice(0,14).map(newsCard)
+    );
+
+    setTrack(
+      $("launches"),
+      launches.slice(0,12).map((l) =>
+        baseCard(
+          l.name || "Unnamed mission",
+          `${l.launch_service_provider?.name || "Unknown provider"} • ${l.pad?.location?.name || "Unknown location"}<br>NET: ${fmtDateTime(l.net)}`
+        )
+      )
+    );
+
+    setTrack(
+      $("events"),
+      events.slice(0,12).map((e) =>
+        baseCard(
+          e.name || "Unnamed event",
+          `${e.where || "Global"} • ${fmtDate(e.date)}<br>${stripHtml(e.note || "").slice(0,120)}`
+        )
+      )
+    );
+
+    setTrack(
+      $("highlights"),
+      [
+        baseCard("Top Story", news[0]?.title || "N/A"),
+        baseCard("Next Launch", launches[0]?.name || "N/A"),
+        baseCard("Next Celestial Event", events[0]?.name || "N/A"),
+        baseCard("Feed Health", `News: ${news.length} • Launches: ${launches.length} • Events: ${events.length}`)
+      ]
+    );
+
+    const tickerItems = [
+      ...news.slice(0,3).map((x) => `🛰️ ${x.title}`),
+      ...launches.slice(0,2).map((x) => `🚀 ${x.name}`),
+      ...events.slice(0,2).map((x) => `🌠 ${x.name}`)
+    ];
+    $("ticker").textContent = tickerItems.join("   •   ") || "No live items available";
+
+    const failedCount = [newsRes, launchesRes, eventsRes].filter((x) => x.ok === false).length;
+    $("statusText").textContent = failedCount
+      ? `Partial update (${failedCount} source issue) • ${new Date().toLocaleTimeString()}`
+      : `Last update: ${new Date().toLocaleTimeString()}`;
+  }
+
+  function startClocks(){
+    const tick = () => {
+      const now = new Date();
+      $("clockUtc").textContent = "UTC " + now.toISOString().split("T")[1].split(".")[0];
+      $("clockLocal").textContent = "LOCAL " + now.toLocaleTimeString();
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  startClocks();
+  loadAll();
+  setInterval(loadAll, REFRESH_MS);
+</script>
+</body>
+</html>
