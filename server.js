@@ -123,6 +123,8 @@ function getBestImageUrl(it, descriptionHtml) {
   if (url) {
     // WordPress thumbnail size clean up (e.g. -150x150.jpg -> .jpg)
     url = url.replace(/-\d+x\d+(\.[a-z0-9]+)$/i, "$1");
+    // Phys.org thumbnail clean up (e.g. /news/tmb/ -> /news/800/)
+    url = url.replace(/\/news\/tmb\//i, "/news/800/");
   }
 
   return url;
@@ -168,6 +170,7 @@ function normalizeRssOrAtom(xml, sourceName) {
       let imageUrl = extractImageFromHtml(summaryRaw);
       if (imageUrl) {
         imageUrl = imageUrl.replace(/-\d+x\d+(\.[a-z0-9]+)$/i, "$1");
+        imageUrl = imageUrl.replace(/\/news\/tmb\//i, "/news/800/");
       }
 
       items.push({
