@@ -1,0 +1,14 @@
+{
+  "name": "navars-space-telemetry-kiosk",
+  "version": "1.0.0",
+  "description": "Live telemetry-style kiosk for astronomy news, rocket launches, and celestial events",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "fast-xml-parser": "^4.4.1"
+  }
+}

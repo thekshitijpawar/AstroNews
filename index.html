@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Navars Edutech | Space Operations Live</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+    
+    :root {
+      --bg: #040507;
+      --text: #ffffff;
+      --text-muted: #8e9cae;
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #3b82f6;
+      --font-display: 'Outfit', sans-serif;
+      --font-sans: 'Inter', sans-serif;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* Cosmic background JWST Cliffs */
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to bottom, rgba(4, 5, 7, 0.94), rgba(4, 5, 7, 0.9)),
+        url('https://images-assets.nasa.gov/image/carina_nebula/carina_nebula~medium.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Subtle Twinkling Starfield */
+    .stars {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 1px, transparent 15px);
+      background-size: 380px 380px;
+      opacity: 0.08;
+      animation: space-twinkle 20s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes space-twinkle {
+      0% { opacity: 0.05; }
+      100% { opacity: 0.12; }
+    }
+    
+    .container {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 64px 1fr 1px 180px 32px;
+      padding: 0 40px;
+    }
+    
+    /* Header Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      height: 100%;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: white;
+      padding: 2px;
+      object-fit: contain;
+    }
+    .brand-name {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 1.05rem;
+      letter-spacing: 0.5px;
+    }
+    .clocks {
+      display: flex;
+      gap: 20px;
+    }
+    .clock-pill {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+    .btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .btn:hover {
+      background: white;
+      color: black;
+      border-color: white;
+    }
+    .btn.scroll-mode {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+    }
+    .btn.scroll-mode:hover {
+      background: rgba(59, 130, 246, 0.25);
+    }
+    
+    /* Hero Section (Grid: Left text, Center image, Right list) */
+    .hero-section {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr 1fr;
+      gap: 40px;
+      align-items: center;
+      padding: 30px 0;
+      min-height: 0;
+      height: 100%;
+    }
+    
+    /* Left Spotlight Text */
+    .spotlight-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+      overflow: hidden;
+    }
+    .spotlight-category {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .spotlight-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 500;
+      line-height: 1.25;
+      color: var(--text);
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .spotlight-summary {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .spotlight-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .spotlight-meta a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+    .spotlight-meta a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Center Spotlight Image */
+    .spotlight-image-container {
+      height: 100%;
+      width: 100%;
+      border-radius: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .spotlight-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+      transition: transform 12s ease;
+    }
+    .spotlight-image-container:hover .spotlight-image {
+      transform: scale(1.06);
+    }
+    
+    /* Right Stories List */
+    .stories-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      height: 100%;
+      justify-content: center;
+      overflow-y: auto;
+    }
+    .story-card {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    }
+    .story-card:hover {
+      opacity: 0.8;
+    }
+    .story-thumb {
+      width: 76px;
+      height: 76px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #111;
+    }
+    .story-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .story-meta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .story-title {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 500;
+      line-height: 1.3;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    /* Scroll Layout */
+    .scroll-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      height: 100%;
+      overflow-y: auto;
+      padding: 30px 0;
+    }
+    .scroll-card {
+      display: flex;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    .scroll-thumb {
+      width: 90px;
+      height: 90px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #111;
+    }
+    .scroll-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .scroll-meta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .scroll-title a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      line-height: 1.3;
+    }
+    .scroll-title a:hover {
+      text-decoration: underline;
+    }
+    .scroll-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Divider */
+    .divider {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+    
+    /* Bottom 4 Columns Row */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 30px;
+      padding: 24px 0;
+      min-height: 0;
+    }
+    .bottom-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .col-header {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .col-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .col-desc {
+      font-size: 0.78rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    /* Footer */
+    .footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      height: 100%;
+    }
+
+    /* Scrollbars styling */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 99px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 1200px) {
+      body {
+        height: auto;
+        overflow-y: auto;
+      }
+      .container {
+        height: auto;
+        min-height: 100vh;
+        grid-template-rows: auto auto auto auto auto;
+        padding: 0 20px;
+        gap: 20px;
+      }
+      .top-nav {
+        height: auto;
+        min-height: 64px;
+        padding: 12px 0;
+      }
+      .hero-section {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        height: auto;
+      }
+      .spotlight-image-container {
+        height: 300px;
+      }
+      .scroll-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      .bottom-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .top-nav {
+        flex-direction: column;
+        height: auto;
+        padding: 16px 0;
+        gap: 12px;
+      }
+      .clocks {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .spotlight-title {
+        font-size: 1.6rem;
+      }
+      .scroll-card {
+        flex-direction: row;
+      }
+      .scroll-thumb {
+        width: 70px;
+        height: 70px;
+      }
+      .scroll-desc {
+        display: none; /* Hide descriptions on narrow mobile devices in list view to keep it compact */
+      }
+      .bottom-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="container">
+  <header class="top-nav">
+    <div class="brand">
+      <img class="logo" src="image.jpeg" alt="Navars Logo" />
+      <div>
+        <span class="brand-name">Navars Edutech • Space Portal</span>
+      </div>
+    </div>
+    <div class="clocks">
+      <span class="clock-pill" id="clockUtc">UTC --:--:--</span>
+      <span class="clock-pill" id="clockLocal">LOCAL --:--:--</span>
+      <span class="clock-pill" id="statusText">Initializing…</span>
+    </div>
+    <div>
+      <button id="toggleNewsMode" class="btn">📺 Slideshow</button>
+    </div>
+  </header>
+
+  <main id="news" class="hero-section"></main>
+
+  <hr class="divider" />
+
+  <section class="bottom-row">
+    <div class="bottom-col" id="col1"></div>
+    <div class="bottom-col" id="col2"></div>
+    <div class="bottom-col" id="col3"></div>
+    <div class="bottom-col" id="col4"></div>
+  </section>
+
+  <footer class="footer-bar">
+    <div id="ticker">SYSTEM STATUS: OPERATIONAL</div>
+    <div>© 2026 NAVARS EDUTECH • SPACE Operations Portal</div>
+  </footer>
+</div>
+
+<script>
+  const REFRESH_MS = 10 * 60 * 1000;
+  const $ = (id) => document.getElementById(id);
+
+  let newsList = [];
+  let newsIndex = 0;
+  let newsTimer = null;
+  let newsScrollMode = false;
+
+  function fmtDateTime(v){
+    const d = new Date(v);
+    return isNaN(d) ? "TBD" : d.toLocaleString([], {
+      year:"numeric", month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"
+    });
+  }
+
+  function fmtDate(v){
+    const d = new Date(v);
+    return isNaN(d) ? "TBD" : d.toLocaleDateString([], {
+      year:"numeric", month:"short", day:"numeric"
+    });
+  }
+
+  function stripHtml(s=""){
+    return String(s).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+  }
+
+  function showNextNews(){
+    if(!newsList.length) return;
+    const node = $("news");
+    if(!node) return;
+    
+    // Active Spotlight item
+    const activeItem = newsList[newsIndex];
+    
+    // Get the next 4 items in the list for the sidebar
+    const listItems = [];
+    for (let i = 1; i <= 4; i++) {
+      const nextIdx = (newsIndex + i) % newsList.length;
+      listItems.push({ item: newsList[nextIdx], globalIndex: nextIdx });
+    }
+    
+    const cleanSummary = stripHtml(activeItem.summary || "");
+    const limit = 320; // clean fit
+    const shortSummary = cleanSummary.length > limit ? cleanSummary.slice(0,limit) + "..." : cleanSummary;
+    
+    const hasImg = !!activeItem.imageUrl;
+    const activeImgUrl = hasImg ? activeItem.imageUrl : "https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg";
+
+    node.innerHTML = `
+      <div class="spotlight-text">
+        <div class="spotlight-category">${activeItem.source || "Space News"}</div>
+        <div class="spotlight-title">${activeItem.title}</div>
+        <div class="spotlight-summary">${shortSummary}</div>
+        <div class="spotlight-meta">
+          ${fmtDateTime(activeItem.publishedAt)}
+          ${activeItem.url ? `• <a href="${activeItem.url}" target="_blank" rel="noopener">Read Article ↗</a>` : ""}
+        </div>
+      </div>
+      
+      <div class="spotlight-image-container">
+        <img class="spotlight-image" src="${activeImgUrl}" alt=""
+             onerror="this.src='https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg'" />
+      </div>
+      
+      <div class="stories-list">
+        ${listItems.map(({ item, globalIndex }) => {
+          const cardImg = item.imageUrl || "https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg";
+          return `
+            <div class="story-card" onclick="selectSpotlight(${globalIndex})">
+              <img class="story-thumb" src="${cardImg}" alt=""
+                   onerror="this.src='https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg'" />
+              <div class="story-details">
+                <div class="story-meta">${item.source} • ${fmtDate(item.publishedAt)}</div>
+                <div class="story-title">${item.title}</div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+    
+    // Increment newsIndex for next rotation
+    newsIndex = (newsIndex + 1) % newsList.length;
+  }
+
+  window.selectSpotlight = function(idx) {
+    if (newsTimer) clearInterval(newsTimer);
+    newsIndex = idx;
+    showNextNews();
+    if (!newsScrollMode) {
+      newsTimer = setInterval(showNextNews, 8000);
+    }
+  }
+
+  function updateNewsView(){
+    const node = $("news");
+    const btn = $("toggleNewsMode");
+    if(!node || !btn) return;
+
+    if (newsScrollMode) {
+      if (newsTimer) clearInterval(newsTimer);
+      node.className = "scroll-layout";
+      btn.classList.add("scroll-mode");
+      btn.innerHTML = `<span>📰 Scroll Mode</span>`;
+      
+      node.innerHTML = newsList.map(n => {
+        const cardImg = n.imageUrl || "https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg";
+        return `
+          <div class="scroll-card">
+            <img class="scroll-thumb" src="${cardImg}" alt=""
+                 onerror="this.src='https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg'" />
+            <div class="scroll-details">
+              <div class="scroll-meta">${n.source} • ${fmtDateTime(n.publishedAt)}</div>
+              <div class="scroll-title">${n.url ? `<a href="${n.url}" target="_blank" rel="noopener">${n.title}</a>` : n.title}</div>
+              <div class="scroll-desc">${stripHtml(n.summary || "").slice(0, 160)}...</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    } else {
+      node.className = "hero-section";
+      btn.classList.remove("scroll-mode");
+      btn.innerHTML = `<span>📺 Slideshow</span>`;
+      if (newsTimer) clearInterval(newsTimer);
+      showNextNews();
+      newsTimer = setInterval(showNextNews, 8000);
+    }
+  }
+
+  function updateBottomRow(launches, events) {
+    const col1 = $("col1");
+    const col2 = $("col2");
+    const col3 = $("col3");
+    const col4 = $("col4");
+    if (!col1 || !col2 || !col3 || !col4) return;
+
+    // Launch 1
+    const l1 = launches[0];
+    if (l1) {
+      col1.innerHTML = `
+        <div class="col-header">Launch Tracking</div>
+        <div class="col-title">${l1.name}</div>
+        <div class="col-desc">${l1.launch_service_provider?.name || "Unknown"} • ${l1.pad?.location?.name || "Unknown"}<br>NET: ${fmtDateTime(l1.net)}</div>
+      `;
+    } else {
+      col1.innerHTML = `<div class="col-header">Launch Tracking</div><div class="col-title">No upcoming launches</div>`;
+    }
+
+    // Launch 2
+    const l2 = launches[1];
+    if (l2) {
+      col2.innerHTML = `
+        <div class="col-header">Launch Tracking</div>
+        <div class="col-title">${l2.name}</div>
+        <div class="col-desc">${l2.launch_service_provider?.name || "Unknown"} • ${l2.pad?.location?.name || "Unknown"}<br>NET: ${fmtDateTime(l2.net)}</div>
+      `;
+    } else {
+      col2.innerHTML = `<div class="col-header">Launch Tracking</div><div class="col-title">No upcoming launches</div>`;
+    }
+
+    // Event 1
+    const e1 = events[0];
+    if (e1) {
+      col3.innerHTML = `
+        <div class="col-header">Sky Watch</div>
+        <div class="col-title">${e1.name}</div>
+        <div class="col-desc">${e1.where || "Global"} • ${fmtDate(e1.date)}<br>${stripHtml(e1.note || "").slice(0, 100)}</div>
+      `;
+    } else {
+      col3.innerHTML = `<div class="col-header">Sky Watch</div><div class="col-title">No upcoming events</div>`;
+    }
+
+    // Event 2
+    const e2 = events[1];
+    if (e2) {
+      col4.innerHTML = `
+        <div class="col-header">Sky Watch</div>
+        <div class="col-title">${e2.name}</div>
+        <div class="col-desc">${e2.where || "Global"} • ${fmtDate(e2.date)}<br>${stripHtml(e2.note || "").slice(0, 100)}</div>
+      `;
+    } else {
+      col4.innerHTML = `<div class="col-header">Sky Watch</div><div class="col-title">No upcoming events</div>`;
+    }
+  }
+
+  async function safeFetch(url){
+    try{
+      const r = await fetch(url);
+      if(!r.ok) throw new Error(`${url} -> ${r.status}`);
+      return await r.json();
+    }catch(err){
+      return { ok:false, items:[], error:err.message };
+    }
+  }
+
+  async function loadAll(){
+    $("statusText").textContent = "Updating feeds…";
+
+    const [newsRes, launchesRes, eventsRes] = await Promise.all([
+      safeFetch("/api/news"),
+      safeFetch("/api/launches"),
+      safeFetch("/api/events")
+    ]);
+
+    const news = newsRes.items || [];
+    const launches = launchesRes.items || [];
+    const events = eventsRes.items || [];
+
+    newsList = news;
+    newsIndex = 0;
+    updateNewsView();
+
+    updateBottomRow(launches, events);
+
+    $("ticker").textContent = `SYSTEM STATUS: OPERATIONAL  •  Feeds Synchronized: News (${news.length}) Launches (${launches.length}) Events (${events.length})`;
+
+    const failedCount = [newsRes, launchesRes, eventsRes].filter((x) => x.ok === false).length;
+    $("statusText").textContent = failedCount
+      ? `Partial update (${failedCount} source issue) • ${new Date().toLocaleTimeString()}`
+      : `Last update: ${new Date().toLocaleTimeString()}`;
+  }
+
+  function startClocks(){
+    const tick = () => {
+      const now = new Date();
+      $("clockUtc").textContent = "UTC " + now.toISOString().split("T")[1].split(".")[0];
+      $("clockLocal").textContent = "LOCAL " + now.toLocaleTimeString();
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  startClocks();
+  loadAll();
+  setInterval(loadAll, REFRESH_MS);
+
+  const toggleBtn = $("toggleNewsMode");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      newsScrollMode = !newsScrollMode;
+      updateNewsView();
+    });
+  }
+</script>
+</body>
+</html>
