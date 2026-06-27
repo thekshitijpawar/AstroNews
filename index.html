@@ -5,108 +5,283 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Navars Edutech | Space Operations Live</title>
   <style>
-    :root{
-      --bg:#090d16; --bg2:#0f172a; --panel:rgba(30, 41, 59, 0.45); --panel2:rgba(15, 23, 42, 0.45);
-      --line:rgba(255, 255, 255, 0.06); --line-soft:rgba(255, 255, 255, 0.04); --text:#f8fafc; --muted:#94a3b8;
-      --cyan:#3b82f6; --shadow:0 10px 25px -5px rgba(0,0,0,0.5), 0 8px 10px -6px rgba(0,0,0,0.5);
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+    
+    :root {
+      --bg: #040815;
+      --panel: rgba(17, 24, 39, 0.35);
+      --border: rgba(255, 255, 255, 0.05);
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.15);
+      --text: #f3f4f6;
+      --muted: #94a3b8;
+      --font-display: 'Outfit', sans-serif;
+      --font-sans: 'Inter', sans-serif;
+      --shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
     }
-    *{box-sizing:border-box}
-    html,body{
-      margin:0;height:100%;overflow:hidden;
-      font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);
-      background: linear-gradient(180deg, #090d16 0%, #0f172a 100%);
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-
-    .hud{height:100vh;display:grid;grid-template-rows:80px 1fr 34px;gap:12px;padding:12px}
-
-    .top{
-      border:1px solid var(--line);border-radius:12px;
-      background:rgba(30, 41, 59, 0.45);
-      display:flex;justify-content:space-between;align-items:center;padding:10px 16px;
-      box-shadow:var(--shadow);
-      backdrop-filter: blur(8px);
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
     }
-    .brand{display:flex;align-items:center;gap:12px;min-width:0}
-    .logo{
-      width:48px;height:48px;border-radius:8px;object-fit:contain;background:#fff;padding:4px;
-      border:1px solid rgba(255,255,255,0.08);
+    
+    /* Cosmic background nebulae */
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(147, 51, 234, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.04) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
     }
-    .title{
-      font-size:1.05rem;font-weight:700;letter-spacing:.5px;color:#ffffff;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    
+    /* Twinkling Stars Layer */
+    .stars {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 1px, transparent 15px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 20px);
+      background-size: 340px 340px, 450px 450px;
+      background-position: 0 0, 150px 150px;
+      opacity: 0.15;
+      animation: space-twinkle 15s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
     }
-    .sub{
-      margin-top:2px;color:var(--muted);font-size:.76rem;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    @keyframes space-twinkle {
+      0% { opacity: 0.12; transform: scale(1); }
+      100% { opacity: 0.22; transform: scale(1.02); }
     }
-
-    .status{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .pill{
-      border:1px solid var(--line);background:rgba(255,255,255,.02);
-      border-radius:6px;padding:6px 12px;font-size:.72rem;color:#f1f5f9;font-weight:500;
-    }
-
-    .grid{min-height:0;display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
-    #news{padding:12px;height:100%;box-sizing:border-box}
-    #news:not(.scroll-view) .news-card{
-      display:flex;
-      flex-direction:row;
-      height:100%;
-      gap:16px;
-      border:none;
-      background:transparent;
-      padding:0;
-      box-shadow:none;
-      align-items:stretch;
-    }
-    #news:not(.scroll-view) .thumb{
-      height:100%;
-      width:auto;
-      aspect-ratio:1/1;
-      border-radius:10px;
-      object-fit:contain;
-      background:#050915;
-      border:1px solid rgba(255,255,255,0.06);
-      flex-shrink:0;
-    }
-    #news:not(.scroll-view) .news-card > div{
-      display:flex;
-      flex-direction:column;
-      flex-grow:1;
-      height:100%;
-      overflow:hidden;
-    }
-    #news:not(.scroll-view) .t{font-size:1.2rem;font-weight:700;line-height:1.35;margin-bottom:6px;color:#ffffff}
-    #news:not(.scroll-view) .m{font-size:.9rem;line-height:1.5;flex-grow:1;overflow-y:auto;margin-bottom:10px;color:#cbd5e1}
-    #news.scroll-view{
-      overflow-y:auto;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .stack{min-height:0;display:grid;grid-template-rows:1fr 1fr;gap:12px}
-
-    .panel{
-      min-height:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;
-      background:rgba(30, 41, 59, 0.25);
-      box-shadow:var(--shadow);display:flex;flex-direction:column;position:relative;
-      backdrop-filter: blur(8px);
-    }
-    .ph{
-      height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;
-      border-bottom:1px solid var(--line-soft);font-size:.76rem;font-weight:600;
-      text-transform:uppercase;letter-spacing:.8px;background:rgba(255,255,255,.01);
-      color:#e2e8f0;
-    }
-    .tag{
-      border:1px solid rgba(59, 130, 246, 0.3);color:#93c5fd;background:rgba(59, 130, 246, 0.1);
-      font-size:.62rem;padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:.6px;
+    
+    .hud {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 76px 1fr 30px;
+      gap: 16px;
+      padding: 16px;
     }
 
-    .pb{min-height:0;height:100%;position:relative;overflow:hidden}
-    .track{
-      padding:12px;display:flex;flex-direction:column;gap:8px;
-      height:100%;overflow-y:auto;
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 8px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: white;
+      padding: 4px;
+      object-fit: contain;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+    }
+    .logo:hover {
+      transform: rotate(5deg) scale(1.05);
+    }
+    .title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      color: #ffffff;
+    }
+    .sub {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .status {
+      display: flex;
+      gap: 8px;
+    }
+    .pill {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      color: #e2e8f0;
+      font-weight: 500;
+      backdrop-filter: blur(4px);
+    }
+
+    .grid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+    }
+    
+    #news {
+      padding: 18px;
+      height: 100%;
+    }
+    #news:not(.scroll-view) .news-card {
+      display: flex;
+      flex-direction: row;
+      gap: 24px;
+      height: 100%;
+      align-items: stretch;
+    }
+    #news:not(.scroll-view) .thumb-wrapper {
+      position: relative;
+      height: 100%;
+      width: 45%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #050915;
+      border: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    #news:not(.scroll-view) .thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 12s ease;
+    }
+    #news:not(.scroll-view):hover .thumb {
+      transform: scale(1.08);
+    }
+    #news:not(.scroll-view) .news-card > div {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      flex-grow: 1;
+      height: 100%;
+      overflow: hidden;
+    }
+    #news:not(.scroll-view) .t {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 600;
+      line-height: 1.35;
+      margin-bottom: 8px;
+      color: #ffffff;
+      transition: color 0.2s ease;
+    }
+    #news:not(.scroll-view) .t:hover {
+      color: #60a5fa;
+    }
+    #news:not(.scroll-view) .m {
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: #cbd5e1;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      flex-grow: 1;
+    }
+    
+    #news.scroll-view {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+    }
+    #news.scroll-view .news-card {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    #news.scroll-view .thumb-wrapper {
+      width: 120px;
+      height: 90px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    #news.scroll-view .thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .stack {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      transition: border-color 0.3s ease;
+    }
+    .panel:hover {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .ph {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      background: rgba(255, 255, 255, 0.01);
+      color: #ffffff;
+    }
+    .tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #93c5fd;
+      background: var(--accent-glow);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      padding: 3px 10px;
+      border-radius: 99px;
+      letter-spacing: 0.5px;
+    }
+
+    .pb {
+      min-height: 0;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    .track {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+      overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: rgba(255,255,255,0.08) transparent;
     }
@@ -124,231 +299,179 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
-    .card{
-      border:1px solid rgba(255, 255, 255, 0.04);border-radius:10px;
-      background:rgba(255, 255, 255, 0.02);
-      padding:10px;
-      transition: background 0.2s ease, border-color 0.2s ease;
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.01);
+      padding: 12px 14px;
+      transition: all 0.3s ease;
     }
-    .card:hover{
-      background:rgba(255, 255, 255, 0.04);
-      border-color:rgba(255, 255, 255, 0.08);
+    .card:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
 
-    .news-card{display:grid;grid-template-columns:84px 1fr;gap:10px;align-items:start}
-    .thumb{
-      width:84px;height:64px;border-radius:8px;object-fit:cover;border:1px solid #30487b;
-      background:#0b1226;display:block;
-    }
-    .thumb.fallback{
-      display:flex;align-items:center;justify-content:center;color:#9cb2dd;
-      font-size:.66rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
-      background:linear-gradient(135deg,#102248,#1a2e5f);
-    }
-    .toggle-btn {
-      background: rgba(88, 215, 255, 0.1);
-      border: 1px solid rgba(88, 215, 255, 0.35);
-      border-radius: 999px;
-      color: #58d7ff;
-      font-size: 0.68rem;
-      font-weight: 800;
-      padding: 4px 10px;
-      cursor: pointer;
-      letter-spacing: 0.5px;
+    .thumb.fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9cb2dd;
+      font-size: .66rem;
+      font-weight: 700;
+      letter-spacing: .5px;
       text-transform: uppercase;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      height: 100%;
+      width: 100%;
+    }
+    
+    .toggle-btn {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 5px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       transition: all 0.2s ease;
-      font-family: inherit;
     }
     .toggle-btn:hover {
-      background: rgba(88, 215, 255, 0.25);
-      border-color: #58d7ff;
-      box-shadow: 0 0 8px rgba(88, 215, 255, 0.4);
+      background: rgba(255,255,255,0.05);
+      color: #ffffff;
+      border-color: rgba(255,255,255,0.15);
     }
     .toggle-btn.scroll-mode {
-      background: rgba(205, 220, 255, 0.1);
-      border-color: rgba(205, 220, 255, 0.35);
-      color: #cfe1ff;
+      background: var(--accent-glow);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
     }
     .toggle-btn.scroll-mode:hover {
-      background: rgba(205, 220, 255, 0.25);
-      border-color: #cfe1ff;
-      box-shadow: 0 0 8px rgba(205, 220, 255, 0.4);
+      background: rgba(59, 130, 246, 0.25);
     }
 
-    .t{font-size:.9rem;font-weight:700;line-height:1.25;margin-bottom:4px;color:#f2f7ff}
-    .m{font-size:.77rem;color:var(--muted);line-height:1.35}
-    .meta-line{margin-top:5px;font-size:.7rem;color:#8da6d8}
-    .link{color:#9be2ff;text-decoration:none;border-bottom:1px dotted rgba(155,226,255,.5)}
+    .t {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .m {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .meta-line {
+      margin-top: 6px;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    .link {
+      color: #60a5fa;
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity 0.2s ease;
+    }
+    .link:hover {
+      opacity: 0.85;
+      text-decoration: underline;
+    }
 
-    .ticker{
-      border:1px solid var(--line);border-radius:10px;
-      display:flex;justify-content:space-between;align-items:center;padding:0 14px;
-      background:rgba(30, 41, 59, 0.45);box-shadow:var(--shadow);
-      font-size:0.72rem;color:var(--muted);
-      backdrop-filter: blur(8px);
+    .ticker {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.3px;
     }
 
     /* Responsive Breakpoints */
-    
-    /* Tablets & Medium Screens */
     @media (max-width: 1200px) {
       .grid {
-        grid-template-columns: 1.1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 16px;
       }
-      #news:not(.scroll-view) .thumb {
-        width: 160px;
-        height: 160px;
+      .stack {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: unset;
+        gap: 16px;
       }
-      #news:not(.scroll-view) .t {
-        font-size: 1.1rem;
-      }
-      #news:not(.scroll-view) .m {
-        font-size: 0.85rem;
+      #news:not(.scroll-view) .thumb-wrapper {
+        width: 40%;
       }
     }
 
-    /* Phones & Small Screens */
     @media (max-width: 768px) {
-      html, body {
-        overflow: auto;
-      }
       .hud {
         height: auto;
         min-height: 100vh;
         grid-template-rows: auto auto auto;
-        gap: 12px;
-        padding: 8px;
+        gap: 16px;
       }
       .top {
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
-        padding: 12px;
-        height: auto;
-      }
-      .brand {
-        flex-direction: row;
-        justify-content: flex-start;
-        text-align: left;
-      }
-      .logo {
-        width: 46px;
-        height: 46px;
-      }
-      .title {
-        font-size: 0.95rem;
-        white-space: normal;
-      }
-      .sub {
-        font-size: 0.72rem;
-        white-space: normal;
-      }
-      .status {
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-      .pill {
-        font-size: 0.7rem;
-        padding: 4px 10px;
-      }
-      .grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-      .stack {
-        grid-template-rows: unset;
-        gap: 12px;
-      }
-      .pb {
-        height: 320px;
-      }
-      
-      /* News Card Mobile Stacking */
-      #news:not(.scroll-view) .news-card {
-        flex-direction: column;
-        align-items: center;
         text-align: center;
-        gap: 12px;
-        padding: 8px;
       }
-      #news:not(.scroll-view) .thumb {
-        width: 140px;
-        height: 140px;
-        aspect-ratio: 1/1;
-        margin: 0 auto;
-      }
-      #news:not(.scroll-view) .news-card > div {
-        align-items: center;
-        width: 100%;
-      }
-      #news:not(.scroll-view) .t {
-        font-size: 1.05rem;
-        margin-bottom: 4px;
-      }
-      #news:not(.scroll-view) .m {
-        font-size: 0.85rem;
-        margin-bottom: 8px;
-        max-height: 110px;
-      }
-      
-      /* Scroll View tweaks on mobile */
-      #news.scroll-view .news-card {
-        display: grid;
-        grid-template-columns: 70px 1fr;
-        gap: 8px;
-        padding: 6px;
-      }
-      #news.scroll-view .thumb {
-        width: 70px;
-        height: 55px;
-      }
-      #news.scroll-view .t {
-        font-size: 0.8rem;
-      }
-      #news.scroll-view .m {
-        font-size: 0.72rem;
-      }
-      
-      .ticker {
-        height: 36px;
-        font-size: 0.76rem;
-      }
-      .ticker .label {
-        font-size: 0.66rem;
-        padding: 0 8px;
-      }
-    }
-
-    @media (max-width: 480px) {
       .brand {
+        flex-direction: column;
         gap: 8px;
       }
       .logo {
         width: 40px;
         height: 40px;
       }
-      .title {
-        font-size: 0.85rem;
+      .status {
+        justify-content: center;
       }
+      .stack {
+        grid-template-columns: 1fr;
+      }
+      .pb {
+        height: 300px;
+      }
+      #news:not(.scroll-view) .news-card {
+        flex-direction: column;
+      }
+      #news:not(.scroll-view) .thumb-wrapper {
+        width: 100%;
+        height: 180px;
+      }
+      #news.scroll-view .news-card {
+        grid-template-columns: 80px 1fr;
+      }
+      #news.scroll-view .thumb-wrapper {
+        width: 80px;
+        height: 60px;
+      }
+    }
+
+    @media (max-width: 480px) {
       .sub {
-        display: none; /* Hide feed lists on very small phones to save space */
+        display: none;
       }
       .status {
-        justify-content: space-between;
+        flex-wrap: wrap;
       }
       .pill {
         flex: 1 1 45%;
         text-align: center;
-        font-size: 0.65rem;
-      }
-      #statusText {
-        flex: 1 1 100%;
       }
     }
   </style>
 </head>
 <body>
+<div class="stars"></div>
 <div class="hud">
   <header class="top">
     <div class="brand">
@@ -428,9 +551,9 @@
   function newsCard(n, isFull = false){
     const hasImg = !!n.imageUrl;
     const img = hasImg
-      ? `<img class="thumb" src="${n.imageUrl}" alt="news image" loading="lazy"
-             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb fallback',textContent:'No Image'}))">`
-      : `<div class="thumb fallback">No Image</div>`;
+      ? `<div class="thumb-wrapper"><img class="thumb" src="${n.imageUrl}" alt="news image" loading="lazy"
+             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb fallback',textContent:'No Image'}))"></div>`
+      : `<div class="thumb-wrapper"><div class="thumb fallback">No Image</div></div>`;
 
     const cleanSummary = stripHtml(n.summary || "");
     const limit = isFull ? 1000 : 130;
