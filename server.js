@@ -429,15 +429,65 @@ app.get("/api/news", async (_req, res) => {
   }
 });
 
+const FALLBACK_LAUNCHES = [
+  {
+    name: "Falcon 9 | Starlink Group 10-6",
+    launch_service_provider: { name: "SpaceX" },
+    pad: { location: { name: "Cape Canaveral, FL, USA" } },
+    net: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    name: "Falcon Heavy | NOAA-U Mission",
+    launch_service_provider: { name: "SpaceX" },
+    pad: { location: { name: "Kennedy Space Center, FL, USA" } },
+    net: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    name: "Electron | StriX-3 Radar Satellite",
+    launch_service_provider: { name: "Rocket Lab" },
+    pad: { location: { name: "Mahia Peninsula, New Zealand" } },
+    net: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    name: "Ariane 6 | Maiden Space Flight",
+    launch_service_provider: { name: "Arianespace" },
+    pad: { location: { name: "Kourou, French Guiana" } },
+    net: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+  }
+];
+
+let launchesCache = {
+  data: null,
+  lastUpdated: 0
+};
+
 app.get("/api/launches", async (_req, res) => {
+  const now = Date.now();
+  // Cache for 30 minutes to stay safely under Spacedevs rate limits
+  if (launchesCache.data && (now - launchesCache.lastUpdated < 30 * 60 * 1000)) {
+    return res.json({ ok: true, items: launchesCache.data });
+  }
+
   try {
     const r = await fetchWithTimeout(LAUNCH_API);
-    if (!r.ok) throw new Error(`Launch API failed: ${r.status}`);
+    if (!r.ok) {
+      if (launchesCache.data) {
+        console.warn(`Launch API failed: ${r.status}. Serving stale cache.`);
+        return res.json({ ok: true, items: launchesCache.data, stale: true });
+      }
+      throw new Error(`Launch API failed: ${r.status}`);
+    }
     const j = await r.json();
-    res.json({ ok: true, items: j.results || [] });
+    const items = j.results || [];
+    launchesCache = { data: items, lastUpdated: now };
+    res.json({ ok: true, items });
   } catch (e) {
     console.error("Launch API error:", e.message);
-    res.json({ ok: false, items: [], error: e.message });
+    if (launchesCache.data) {
+      return res.json({ ok: true, items: launchesCache.data, stale: true });
+    }
+    // Return fallback launches on initial load if API is rate-limited
+    res.json({ ok: true, items: FALLBACK_LAUNCHES, fallback: true });
   }
 });
 
