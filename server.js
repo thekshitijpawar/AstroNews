@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.static(".")); // serves index.html + assets
 
-const PORT = process.env.PORT || 8080;
+const PORT = 8080;
 
 /**
  * Real astronomy sources requested:
@@ -85,6 +85,49 @@ async function fetchText(url) {
   return r.text();
 }
 
+function getBestImageUrl(it, descriptionHtml) {
+  let url = "";
+
+  // 1. Check media:content
+  const mediaContent = it["media:content"];
+  if (mediaContent) {
+    const list = Array.isArray(mediaContent) ? mediaContent : [mediaContent];
+    const imgObj = list.find(x => x["@_medium"] === "image" || !x["@_medium"]);
+    if (imgObj && imgObj["@_url"]) url = imgObj["@_url"];
+    else if (list[0]?.["@_url"]) url = list[0]["@_url"];
+  }
+
+  // 2. Check enclosure
+  if (!url) {
+    const enclosure = it.enclosure;
+    if (enclosure) {
+      const list = Array.isArray(enclosure) ? enclosure : [enclosure];
+      if (list[0]?.["@_url"]) url = list[0]["@_url"];
+    }
+  }
+
+  // 3. Check media:thumbnail
+  if (!url) {
+    const mediaThumb = it["media:thumbnail"];
+    if (mediaThumb) {
+      const list = Array.isArray(mediaThumb) ? mediaThumb : [mediaThumb];
+      if (list[0]?.["@_url"]) url = list[0]["@_url"];
+    }
+  }
+
+  // 4. Check description HTML
+  if (!url) {
+    url = extractImageFromHtml(descriptionHtml);
+  }
+
+  if (url) {
+    // WordPress thumbnail size clean up (e.g. -150x150.jpg -> .jpg)
+    url = url.replace(/-\d+x\d+(\.[a-z0-9]+)$/i, "$1");
+  }
+
+  return url;
+}
+
 function normalizeRssOrAtom(xml, sourceName) {
   const j = parser.parse(xml);
   const items = [];
@@ -94,18 +137,13 @@ function normalizeRssOrAtom(xml, sourceName) {
   if (rssItems) {
     for (const it of toArray(rssItems)) {
       const descriptionHtml = it.description || "";
-      const mediaContent = it["media:content"]?.["@_url"] || "";
-      const mediaThumb = it["media:thumbnail"]?.["@_url"] || "";
-      const enclosure = it.enclosure?.["@_url"] || "";
-      const imgFromDesc = extractImageFromHtml(descriptionHtml);
-
       items.push({
         title: cleanText(it.title || "Untitled"),
         url: it.link || "",
         publishedAt: it.pubDate || it.published || "",
         source: sourceName,
         summary: cleanText(descriptionHtml),
-        imageUrl: mediaContent || mediaThumb || enclosure || imgFromDesc || ""
+        imageUrl: getBestImageUrl(it, descriptionHtml)
       });
     }
     return items;
@@ -127,7 +165,10 @@ function normalizeRssOrAtom(xml, sourceName) {
         it.content ||
         "";
 
-      const imgFromDesc = extractImageFromHtml(summaryRaw);
+      let imageUrl = extractImageFromHtml(summaryRaw);
+      if (imageUrl) {
+        imageUrl = imageUrl.replace(/-\d+x\d+(\.[a-z0-9]+)$/i, "$1");
+      }
 
       items.push({
         title: cleanText(it.title?.["#text"] || it.title || "Untitled"),
@@ -135,7 +176,7 @@ function normalizeRssOrAtom(xml, sourceName) {
         publishedAt: it.updated || it.published || "",
         source: sourceName,
         summary: cleanText(summaryRaw),
-        imageUrl: imgFromDesc || ""
+        imageUrl: imageUrl || ""
       });
     }
     return items;
