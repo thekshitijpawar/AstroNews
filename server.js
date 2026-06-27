@@ -17,7 +17,10 @@ const PORT = 8080;
 const NEWS_FEEDS = [
   { url: "https://www.universetoday.com/feed/", source: "Universe Today" },
   { url: "https://www.nasa.gov/feed/", source: "NASA" },
-  { url: "https://www.space.com/feeds/all", source: "Space.com" },
+  { url: "https://www.space.com/feeds/category/astronomy", source: "Space.com Astronomy" },
+  { url: "https://www.space.com/feeds/category/space-exploration", source: "Space.com Space Exploration" },
+  { url: "https://www.space.com/feeds/science/astrophysics", source: "Space.com Astrophysics" },
+  { url: "https://www.space.com/feeds/science/particle-physics", source: "Space.com Particle Physics" },
   { url: "https://www.astronomy.com/feed/", source: "Astronomy.com" },
   { url: "https://aas.org/news/feed", source: "AAS" }
 ];
