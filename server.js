@@ -164,6 +164,21 @@ async function findImageForTitle(title) {
   return finalFallback;
 }
 
+const AD_KEYWORDS = [
+  "\\bdeal\\b", "\\bdeals\\b", "buying guide", "gift guide", "\\bsale\\b", "\\bsales\\b", 
+  "\\bdiscount\\b", "\\bdiscounts\\b", "\\bcoupon\\b", "\\bcoupons\\b", "price drop",
+  "\\bshop\\b", "\\bshopping\\b", "sponsored", "\\bsaving\\b", "\\bsavings\\b",
+  "best telescope", "best binoculars", "gift ideas", "black friday", "cyber monday"
+];
+
+function isAdArticle(title = "", summary = "") {
+  const text = (title + " " + summary).toLowerCase();
+  return AD_KEYWORDS.some(pattern => {
+    const regex = new RegExp(pattern, "i");
+    return regex.test(text);
+  });
+}
+
 function getBestImageUrl(it, descriptionHtml) {
   let url = "";
 
@@ -392,6 +407,7 @@ app.get("/api/news", async (_req, res) => {
     for (const n of merged) {
       const key = (n.url || n.title || "").trim();
       if (!key) continue;
+      if (isAdArticle(n.title, n.summary)) continue;
       if (!dedup.has(key)) dedup.set(key, n);
     }
 
