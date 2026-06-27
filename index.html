@@ -554,6 +554,11 @@
   let newsTimer = null;
   let newsScrollMode = false;
 
+  let launchesList = [];
+  let eventsList = [];
+  let bottomIndex = 0;
+  let bottomTimer = null;
+
   function fmtDateTime(v){
     const d = new Date(v);
     return isNaN(d) ? "TBD" : d.toLocaleString([], {
@@ -675,15 +680,25 @@
     }
   }
 
-  function updateBottomRow(launches, events) {
+  function rotateBottomRow() {
+    if (!launchesList.length && !eventsList.length) return;
+    
     const col1 = $("col1");
     const col2 = $("col2");
     const col3 = $("col3");
     const col4 = $("col4");
     if (!col1 || !col2 || !col3 || !col4) return;
 
+    // Cycle launches index
+    const l1Idx = bottomIndex % launchesList.length;
+    const l2Idx = (bottomIndex + 1) % launchesList.length;
+
+    // Cycle events index
+    const e1Idx = bottomIndex % eventsList.length;
+    const e2Idx = (bottomIndex + 1) % eventsList.length;
+
     // Launch 1
-    const l1 = launches[0];
+    const l1 = launchesList[l1Idx];
     if (l1) {
       col1.innerHTML = `
         <div class="col-header">Launch Tracking</div>
@@ -695,7 +710,7 @@
     }
 
     // Launch 2
-    const l2 = launches[1];
+    const l2 = launchesList[l2Idx];
     if (l2) {
       col2.innerHTML = `
         <div class="col-header">Launch Tracking</div>
@@ -707,7 +722,7 @@
     }
 
     // Event 1
-    const e1 = events[0];
+    const e1 = eventsList[e1Idx];
     if (e1) {
       col3.innerHTML = `
         <div class="col-header">Sky Watch</div>
@@ -719,7 +734,7 @@
     }
 
     // Event 2
-    const e2 = events[1];
+    const e2 = eventsList[e2Idx];
     if (e2) {
       col4.innerHTML = `
         <div class="col-header">Sky Watch</div>
@@ -729,6 +744,10 @@
     } else {
       col4.innerHTML = `<div class="col-header">Sky Watch</div><div class="col-title">No upcoming events</div>`;
     }
+
+    // Advance index by 2
+    const maxLen = Math.max(launchesList.length, eventsList.length);
+    bottomIndex = (bottomIndex + 2) % (maxLen || 2);
   }
 
   async function safeFetch(url){
@@ -758,7 +777,13 @@
     newsIndex = 0;
     updateNewsView();
 
-    updateBottomRow(launches, events);
+    launchesList = launches;
+    eventsList = events;
+    bottomIndex = 0;
+    rotateBottomRow();
+
+    if (bottomTimer) clearInterval(bottomTimer);
+    bottomTimer = setInterval(rotateBottomRow, 8000);
 
     $("ticker").textContent = `SYSTEM STATUS: OPERATIONAL  •  Feeds Synchronized: News (${news.length}) Launches (${launches.length}) Events (${events.length})`;
 
