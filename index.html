@@ -48,7 +48,12 @@
       border-radius:999px;padding:6px 10px;font-size:.76rem;color:#cddcff;font-weight:600;
     }
 
-    .grid{min-height:0;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px}
+    .grid{min-height:0;display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+    #news{padding:12px;height:100%;box-sizing:border-box}
+    #news .news-card{display:flex;flex-direction:column;height:100%;gap:12px;border:none;background:transparent;padding:0;box-shadow:none}
+    #news .thumb{width:100%;height:220px;border-radius:10px;object-fit:cover}
+    #news .t{font-size:1.2rem;font-weight:800;line-height:1.35;margin-bottom:6px}
+    #news .m{font-size:.9rem;line-height:1.45;flex-grow:1;overflow-y:auto}
     .stack{min-height:0;display:grid;grid-template-rows:1fr 1fr;gap:10px}
 
     .panel{
@@ -136,7 +141,7 @@
   <main class="grid">
     <section class="panel">
       <div class="ph">Astronomy News Intelligence <span class="tag">LIVE FEED</span></div>
-      <div class="pb"><div id="news" class="track" style="--d:58s"></div></div>
+      <div class="pb"><div id="news"></div></div>
     </section>
 
     <div class="stack">
@@ -149,11 +154,6 @@
         <div class="pb"><div id="events" class="track" style="--d:46s"></div></div>
       </section>
     </div>
-
-    <section class="panel">
-      <div class="ph">Command Highlights <span class="tag">SUMMARY</span></div>
-      <div class="pb"><div id="highlights" class="track" style="--d:40s"></div></div>
-    </section>
   </main>
 
   <footer class="ticker">
@@ -163,10 +163,12 @@
 </div>
 
 <script>
+  const REFRESH_MS = 10 * 60 * 1000;
+  const $ = (id) => document.getElementById(id);
+
   let newsList = [];
   let newsIndex = 0;
   let newsTimer = null;
- 
 
   function fmtDateTime(v){
     const d = new Date(v);
@@ -213,24 +215,21 @@
     `;
   }
 
-  function setTrack(node, cards){
-  if(!node) return;
-  const safe = cards.length ? cards : [baseCard("No live data available", "Feed temporarily unavailable.")];
-  node.innerHTML = loop(safe).join("");
-}
-
-function showNextNews(){
-  if(!newsList.length) return;
-  const node = $("news");
-  if(!node) return;
-  const n = newsList[newsIndex];
-  node.innerHTML = newsCard(n);
-  newsIndex = (newsIndex + 1) % newsList.length;
-}
+  function loop(items){ return items.concat(items); }
 
   function setTrack(node, cards){
+    if(!node) return;
     const safe = cards.length ? cards : [baseCard("No live data available", "Feed temporarily unavailable.")];
     node.innerHTML = loop(safe).join("");
+  }
+
+  function showNextNews(){
+    if(!newsList.length) return;
+    const node = $("news");
+    if(!node) return;
+    const n = newsList[newsIndex];
+    node.innerHTML = newsCard(n);
+    newsIndex = (newsIndex + 1) % newsList.length;
   }
 
   async function safeFetch(url){
@@ -241,13 +240,10 @@ function showNextNews(){
     }catch(err){
       return { ok:false, items:[], error:err.message };
     }
+  }
 
   async function loadAll(){
-  newsList = news;
-  newsIndex = 0;
-  if(newsTimer) clearInterval(newsTimer);
-  showNextNews();
-  newsTimer = setInterval(showNextNews, 8000);
+    $("statusText").textContent = "Updating feeds…";
 
     const [newsRes, launchesRes, eventsRes] = await Promise.all([
       safeFetch("/api/news"),
@@ -259,10 +255,11 @@ function showNextNews(){
     const launches = launchesRes.items || [];
     const events = eventsRes.items || [];
 
-    setTrack(
-      $("news"),
-      news.slice(0,14).map(newsCard)
-    );
+    newsList = news;
+    newsIndex = 0;
+    if(newsTimer) clearInterval(newsTimer);
+    showNextNews();
+    newsTimer = setInterval(showNextNews, 8000);
 
     setTrack(
       $("launches"),
@@ -282,16 +279,6 @@ function showNextNews(){
           `${e.where || "Global"} • ${fmtDate(e.date)}<br>${stripHtml(e.note || "").slice(0,120)}`
         )
       )
-    );
-
-    setTrack(
-      $("highlights"),
-      [
-        baseCard("Top Story", news[0]?.title || "N/A"),
-        baseCard("Next Launch", launches[0]?.name || "N/A"),
-        baseCard("Next Celestial Event", events[0]?.name || "N/A"),
-        baseCard("Feed Health", `News: ${news.length} • Launches: ${launches.length} • Events: ${events.length}`)
-      ]
     );
 
     const tickerItems = [
