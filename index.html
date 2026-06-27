@@ -163,8 +163,10 @@
 </div>
 
 <script>
-  const REFRESH_MS = 10 * 60 * 1000;
-  const $ = (id) => document.getElementById(id);
+  let newsList = [];
+  let newsIndex = 0;
+  let newsTimer = null;
+ 
 
   function fmtDateTime(v){
     const d = new Date(v);
@@ -211,7 +213,20 @@
     `;
   }
 
-  function loop(items){ return items.concat(items); }
+  function setTrack(node, cards){
+  if(!node) return;
+  const safe = cards.length ? cards : [baseCard("No live data available", "Feed temporarily unavailable.")];
+  node.innerHTML = loop(safe).join("");
+}
+
+function showNextNews(){
+  if(!newsList.length) return;
+  const node = $("news");
+  if(!node) return;
+  const n = newsList[newsIndex];
+  node.innerHTML = newsCard(n);
+  newsIndex = (newsIndex + 1) % newsList.length;
+}
 
   function setTrack(node, cards){
     const safe = cards.length ? cards : [baseCard("No live data available", "Feed temporarily unavailable.")];
@@ -226,10 +241,13 @@
     }catch(err){
       return { ok:false, items:[], error:err.message };
     }
-  }
 
   async function loadAll(){
-    $("statusText").textContent = "Updating feeds…";
+  newsList = news;
+  newsIndex = 0;
+  if(newsTimer) clearInterval(newsTimer);
+  showNextNews();
+  newsTimer = setInterval(showNextNews, 8000);
 
     const [newsRes, launchesRes, eventsRes] = await Promise.all([
       safeFetch("/api/news"),
