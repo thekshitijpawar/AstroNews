@@ -33,9 +33,8 @@
     }
     
     /* Cosmic background JWST Cliffs */
-    body::before {
-      content: '';
-      position: absolute;
+    .bg-overlay {
+      position: fixed;
       inset: 0;
       background-image: 
         linear-gradient(to bottom, rgba(4, 5, 7, 0.94), rgba(4, 5, 7, 0.9)),
@@ -46,6 +45,7 @@
       opacity: 0.35;
       pointer-events: none;
       z-index: 0;
+      transition: opacity 0.15s ease;
     }
 
     /* Subtle Twinkling Starfield */
@@ -405,6 +405,35 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
+    /* Brightness Slider Styling */
+    .brightness-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .brightness-control input[type="range"] {
+      -webkit-appearance: none;
+      width: 70px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 99px;
+      outline: none;
+      cursor: pointer;
+    }
+    .brightness-control input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: white;
+      transition: background 0.15s ease;
+    }
+    .brightness-control input[type="range"]::-webkit-slider-thumb:hover {
+      background: #60a5fa;
+    }
+
     /* Responsive Breakpoints */
     @media (max-width: 1200px) {
       body {
@@ -474,6 +503,7 @@
   </style>
 </head>
 <body>
+<div class="bg-overlay" id="bgOverlay"></div>
 <div class="stars"></div>
 <div class="container">
   <header class="top-nav">
@@ -488,7 +518,12 @@
       <span class="clock-pill" id="clockLocal">LOCAL --:--:--</span>
       <span class="clock-pill" id="statusText">Initializing…</span>
     </div>
-    <div>
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <div class="brightness-control">
+        <span>🔅</span>
+        <input type="range" id="bgBrightness" min="5" max="85" value="35" step="5" title="Adjust Background Brightness" />
+        <span>🔆</span>
+      </div>
       <button id="toggleNewsMode" class="btn">📺 Slideshow</button>
     </div>
   </header>
@@ -752,6 +787,14 @@
     toggleBtn.addEventListener("click", () => {
       newsScrollMode = !newsScrollMode;
       updateNewsView();
+    });
+  }
+
+  const brightnessSlider = $("bgBrightness");
+  const bgOverlay = $("bgOverlay");
+  if (brightnessSlider && bgOverlay) {
+    brightnessSlider.addEventListener("input", (e) => {
+      bgOverlay.style.opacity = e.target.value / 100;
     });
   }
 </script>
