@@ -11,13 +11,17 @@ const PORT = 8080;
 /**
  * Real astronomy sources requested:
  * - Universe Today
- * - Phys.org Space News
+ * - NASA
+ * - Space.com
  * - Astronomy.com
+ * - AAS
  */
 const NEWS_FEEDS = [
   { url: "https://www.universetoday.com/feed/", source: "Universe Today" },
-  { url: "https://phys.org/rss-feed/space-news/", source: "Phys.org Space News" },
-  { url: "https://www.astronomy.com/feed/", source: "Astronomy.com" }
+  { url: "https://www.nasa.gov/feed/", source: "NASA" },
+  { url: "https://www.space.com/feeds/all", source: "Space.com" },
+  { url: "https://www.astronomy.com/feed/", source: "Astronomy.com" },
+  { url: "https://aas.org/news/feed", source: "AAS" }
 ];
 
 // Real upcoming launches
@@ -83,6 +87,81 @@ async function fetchText(url) {
   const r = await fetchWithTimeout(url);
   if (!r.ok) throw new Error(`Fetch failed ${r.status} for ${url}`);
   return r.text();
+}
+
+const imageCache = new Map();
+const SPACE_KEYWORDS = [
+  "mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto",
+  "moon", "sun", "star", "nebula", "galaxy", "comet", "asteroid", "meteor", "telescope",
+  "launch", "space", "orbit", "astronaut", "nasa", "esa", "iss", "rocket", "stellar",
+  "black hole", "supernova", "eclipse", "aurora", "constellation", "messier", "hubble",
+  "webb", "artemis", "spacex", "apollo", "capsule", "rover", "crater", "milky way"
+];
+
+async function findImageForTitle(title) {
+  if (!title) return "";
+  const cacheKey = title.trim().toLowerCase();
+  if (imageCache.has(cacheKey)) {
+    return imageCache.get(cacheKey);
+  }
+
+  try {
+    const lowerTitle = title.toLowerCase();
+    const foundKeywords = SPACE_KEYWORDS.filter(kw => {
+      const regex = new RegExp("\\b" + kw + "\\b", "i");
+      return regex.test(lowerTitle);
+    });
+
+    let items = [];
+    if (foundKeywords.length > 0) {
+      const query = foundKeywords.join(" ");
+      const url = `https://images-api.nasa.gov/search?q=${encodeURIComponent(query)}&media_type=image`;
+      const res = await fetchWithTimeout(url);
+      const data = await res.json();
+      items = data.collection?.items || [];
+    }
+
+    if (items.length === 0) {
+      let query = title
+        .replace(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,\s*\d{4})?\s*[:\-–—]?/i, "")
+        .replace(/^[a-zA-Z]+,\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}\s*[:\-–—]?/i, "")
+        .replace(/[:\-–—()]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      const words = query.split(" ").filter(w => w.length > 3);
+      if (words.length > 0) {
+        const simpleQuery = words.slice(0, 3).join(" ");
+        const url = `https://images-api.nasa.gov/search?q=${encodeURIComponent(simpleQuery)}&media_type=image`;
+        const res = await fetchWithTimeout(url);
+        const data = await res.json();
+        items = data.collection?.items || [];
+      }
+    }
+
+    if (items.length === 0) {
+      const fallbacks = ["nebula", "galaxy", "telescope", "stars", "planet"];
+      const randomTerm = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+      const url = `https://images-api.nasa.gov/search?q=${encodeURIComponent(randomTerm)}&media_type=image`;
+      const res = await fetchWithTimeout(url);
+      const data = await res.json();
+      items = data.collection?.items || [];
+    }
+
+    if (items.length > 0) {
+      const imgUrl = items[0].links?.[0]?.href || "";
+      if (imgUrl) {
+        imageCache.set(cacheKey, imgUrl);
+        return imgUrl;
+      }
+    }
+  } catch (err) {
+    console.error(`Error finding image for title "${title}":`, err.message);
+  }
+
+  const finalFallback = "https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg";
+  imageCache.set(cacheKey, finalFallback);
+  return finalFallback;
 }
 
 function getBestImageUrl(it, descriptionHtml) {
@@ -319,6 +398,15 @@ app.get("/api/news", async (_req, res) => {
     const items = [...dedup.values()]
       .sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0))
       .slice(0, 60);
+
+    // Resolve missing images (e.g. Astronomy.com items) via NASA Images API
+    await Promise.all(
+      items.map(async (item) => {
+        if (!item.imageUrl) {
+          item.imageUrl = await findImageForTitle(item.title);
+        }
+      })
+    );
 
     res.json({ ok: true, count: items.length, items, feedErrors });
   } catch (e) {
