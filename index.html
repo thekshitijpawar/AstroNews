@@ -259,7 +259,7 @@
     return `<article class="card"><div class="t">${title}</div><div class="m">${meta}</div></article>`;
   }
 
-  function newsCard(n){
+  function newsCard(n, isFull = false){
     const hasImg = !!n.imageUrl;
     const img = hasImg
       ? `<img class="thumb" src="${n.imageUrl}" alt="news image" loading="lazy"
@@ -267,7 +267,8 @@
       : `<div class="thumb fallback">No Image</div>`;
 
     const cleanSummary = stripHtml(n.summary || "");
-    const shortSummary = cleanSummary.length > 130 ? cleanSummary.slice(0,130) + "..." : cleanSummary;
+    const limit = isFull ? 1000 : 130;
+    const shortSummary = cleanSummary.length > limit ? cleanSummary.slice(0,limit) + "..." : cleanSummary;
 
     return `
       <article class="card news-card">
@@ -295,7 +296,7 @@
     const node = $("news");
     if(!node) return;
     const n = newsList[newsIndex];
-    node.innerHTML = newsCard(n);
+    node.innerHTML = newsCard(n, true);
     newsIndex = (newsIndex + 1) % newsList.length;
   }
 
@@ -309,7 +310,7 @@
       node.classList.add("scroll-view");
       btn.classList.add("scroll-mode");
       btn.innerHTML = `<span>📰 Scroll Mode</span>`;
-      node.innerHTML = newsList.map(newsCard).join("");
+      node.innerHTML = newsList.map(n => newsCard(n, false)).join("");
     } else {
       node.classList.remove("scroll-view");
       btn.classList.remove("scroll-mode");
