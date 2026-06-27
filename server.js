@@ -17,10 +17,10 @@ const PORT = 8080;
 const NEWS_FEEDS = [
   { url: "https://www.universetoday.com/feed/", source: "Universe Today" },
   { url: "https://www.nasa.gov/feed/", source: "NASA" },
-  { url: "https://www.space.com/feeds/category/astronomy", source: "Space.com Astronomy" },
-  { url: "https://www.space.com/feeds/category/space-exploration", source: "Space.com Space Exploration" },
-  { url: "https://www.space.com/feeds/science/astrophysics", source: "Space.com Astrophysics" },
-  { url: "https://www.space.com/feeds/science/particle-physics", source: "Space.com Particle Physics" },
+  { url: "https://www.space.com/astronomy", source: "Space.com Astronomy", isHtml: true },
+  { url: "https://www.space.com/space-exploration", source: "Space.com Space Exploration", isHtml: true },
+  { url: "https://www.space.com/science/astrophysics", source: "Space.com Astrophysics", isHtml: true },
+  { url: "https://www.space.com/science/particle-physics", source: "Space.com Particle Physics", isHtml: true },
   { url: "https://www.astronomy.com/feed/", source: "Astronomy.com" },
   { url: "https://aas.org/news/feed", source: "AAS" }
 ];
@@ -225,6 +225,47 @@ function getBestImageUrl(it, descriptionHtml) {
   return url;
 }
 
+function parseSpaceComHtml(html, sourceName) {
+  const items = [];
+  const blockRegex = /<div class="listingResult[^>]*>([\s\S]*?)<\/article>/gi;
+  let blockMatch;
+  while ((blockMatch = blockRegex.exec(html)) !== null) {
+    const block = blockMatch[1];
+    
+    // Extract URL
+    const urlMatch = block.match(/href="([^"]+)"\s+class="article-link"/i);
+    const url = urlMatch ? urlMatch[1] : "";
+    
+    // Extract Title
+    const titleMatch = block.match(/<h3 class="article-name">([\s\S]*?)<\/h3>/i);
+    const title = titleMatch ? cleanText(titleMatch[1]) : "";
+    
+    // Extract Image
+    const imgMatch = block.match(/data-pin-media="([^"]+)"/i) || block.match(/data-original="([^"]+)"/i);
+    const imageUrl = imgMatch ? imgMatch[1] : "";
+    
+    // Extract Date
+    const dateMatch = block.match(/datetime="([^"]+)"/i);
+    const publishedAt = dateMatch ? dateMatch[1] : "";
+    
+    // Extract Summary/Synopsis
+    const synopsisMatch = block.match(/<p class="synopsis">([\s\S]*?)<\/p>/i);
+    const summary = synopsisMatch ? cleanText(synopsisMatch[1]) : "";
+    
+    if (url && title) {
+      items.push({
+        title,
+        url,
+        publishedAt,
+        source: sourceName,
+        summary,
+        imageUrl
+      });
+    }
+  }
+  return items;
+}
+
 function normalizeRssOrAtom(xml, sourceName) {
   const j = parser.parse(xml);
   const items = [];
@@ -395,8 +436,13 @@ app.get("/api/news", async (_req, res) => {
 
     for (const feed of NEWS_FEEDS) {
       try {
-        const xml = await fetchText(feed.url);
-        const parsed = normalizeRssOrAtom(xml, feed.source);
+        const content = await fetchText(feed.url);
+        let parsed = [];
+        if (feed.isHtml) {
+          parsed = parseSpaceComHtml(content, feed.source);
+        } else {
+          parsed = normalizeRssOrAtom(content, feed.source);
+        }
         merged.push(...parsed);
       } catch (e) {
         console.error(`Feed error [${feed.source}]:`, e.message);
