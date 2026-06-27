@@ -173,14 +173,163 @@
     .run{white-space:nowrap;padding-left:100%;animation:ticker 42s linear infinite;font-size:.82rem;color:#dfebff}
     @keyframes ticker{to{transform:translateX(-100%)}}
 
-    @media (max-width:1320px){
-      html,body{overflow:auto}
-      .hud{height:auto;min-height:100vh;grid-template-rows:86px auto 32px}
-      .grid{grid-template-columns:1fr}
-      .stack{grid-template-rows:unset}
-      .pb{height:340px}
-      #news .news-card{flex-direction:column;height:100%;gap:10px}
-      #news .thumb{width:120px;height:120px;margin:0 auto;aspect-ratio:1/1}
+    /* Responsive Breakpoints */
+    
+    /* Tablets & Medium Screens */
+    @media (max-width: 1200px) {
+      .grid {
+        grid-template-columns: 1.1fr 1fr;
+      }
+      #news:not(.scroll-view) .thumb {
+        width: 160px;
+        height: 160px;
+      }
+      #news:not(.scroll-view) .t {
+        font-size: 1.1rem;
+      }
+      #news:not(.scroll-view) .m {
+        font-size: 0.85rem;
+      }
+    }
+
+    /* Phones & Small Screens */
+    @media (max-width: 768px) {
+      html, body {
+        overflow: auto;
+      }
+      .hud {
+        height: auto;
+        min-height: 100vh;
+        grid-template-rows: auto auto auto;
+        gap: 12px;
+        padding: 8px;
+      }
+      .top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 12px;
+        height: auto;
+      }
+      .brand {
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+      }
+      .logo {
+        width: 46px;
+        height: 46px;
+      }
+      .title {
+        font-size: 0.95rem;
+        white-space: normal;
+      }
+      .sub {
+        font-size: 0.72rem;
+        white-space: normal;
+      }
+      .status {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .pill {
+        font-size: 0.7rem;
+        padding: 4px 10px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .stack {
+        grid-template-rows: unset;
+        gap: 12px;
+      }
+      .pb {
+        height: 320px;
+      }
+      
+      /* News Card Mobile Stacking */
+      #news:not(.scroll-view) .news-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+        padding: 8px;
+      }
+      #news:not(.scroll-view) .thumb {
+        width: 140px;
+        height: 140px;
+        aspect-ratio: 1/1;
+        margin: 0 auto;
+      }
+      #news:not(.scroll-view) .news-card > div {
+        align-items: center;
+        width: 100%;
+      }
+      #news:not(.scroll-view) .t {
+        font-size: 1.05rem;
+        margin-bottom: 4px;
+      }
+      #news:not(.scroll-view) .m {
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        max-height: 110px;
+      }
+      
+      /* Scroll View tweaks on mobile */
+      #news.scroll-view .news-card {
+        display: grid;
+        grid-template-columns: 70px 1fr;
+        gap: 8px;
+        padding: 6px;
+      }
+      #news.scroll-view .thumb {
+        width: 70px;
+        height: 55px;
+      }
+      #news.scroll-view .t {
+        font-size: 0.8rem;
+      }
+      #news.scroll-view .m {
+        font-size: 0.72rem;
+      }
+      
+      .ticker {
+        height: 36px;
+        font-size: 0.76rem;
+      }
+      .ticker .label {
+        font-size: 0.66rem;
+        padding: 0 8px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .brand {
+        gap: 8px;
+      }
+      .logo {
+        width: 40px;
+        height: 40px;
+      }
+      .title {
+        font-size: 0.85rem;
+      }
+      .sub {
+        display: none; /* Hide feed lists on very small phones to save space */
+      }
+      .status {
+        justify-content: space-between;
+      }
+      .pill {
+        flex: 1 1 45%;
+        text-align: center;
+        font-size: 0.65rem;
+      }
+      #statusText {
+        flex: 1 1 100%;
+      }
     }
   </style>
 </head>
