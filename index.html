@@ -6,49 +6,47 @@
   <title>Navars Edutech | Space Operations Live</title>
   <style>
     :root{
-      --bg:#070c1b; --bg2:#0c152d; --panel:#0f1b37; --panel2:#0c1731;
-      --line:#22345f; --line-soft:#1a2a4e; --text:#ecf3ff; --muted:#9fb2d9;
-      --cyan:#58d7ff; --shadow:0 12px 28px rgba(0,0,0,.35);
+      --bg:#090d16; --bg2:#0f172a; --panel:rgba(30, 41, 59, 0.45); --panel2:rgba(15, 23, 42, 0.45);
+      --line:rgba(255, 255, 255, 0.06); --line-soft:rgba(255, 255, 255, 0.04); --text:#f8fafc; --muted:#94a3b8;
+      --cyan:#3b82f6; --shadow:0 10px 25px -5px rgba(0,0,0,0.5), 0 8px 10px -6px rgba(0,0,0,0.5);
     }
     *{box-sizing:border-box}
     html,body{
       margin:0;height:100%;overflow:hidden;
       font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);
-      background:
-        radial-gradient(1200px 700px at 5% -20%, #16306a 0%, transparent 45%),
-        radial-gradient(900px 600px at 95% -15%, #2a1e59 0%, transparent 45%),
-        linear-gradient(180deg,var(--bg),var(--bg2));
+      background: linear-gradient(180deg, #090d16 0%, #0f172a 100%);
     }
 
-    .hud{height:100vh;display:grid;grid-template-rows:86px 1fr 32px;gap:10px;padding:10px}
+    .hud{height:100vh;display:grid;grid-template-rows:80px 1fr 34px;gap:12px;padding:12px}
 
     .top{
-      border:1px solid var(--line);border-radius:14px;
-      background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
-      display:flex;justify-content:space-between;align-items:center;padding:10px 14px;
+      border:1px solid var(--line);border-radius:12px;
+      background:rgba(30, 41, 59, 0.45);
+      display:flex;justify-content:space-between;align-items:center;padding:10px 16px;
       box-shadow:var(--shadow);
+      backdrop-filter: blur(8px);
     }
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
     .logo{
-      width:54px;height:54px;border-radius:10px;object-fit:contain;background:#fff;padding:5px;
-      border:1px solid #d8e3ff;
+      width:48px;height:48px;border-radius:8px;object-fit:contain;background:#fff;padding:4px;
+      border:1px solid rgba(255,255,255,0.08);
     }
     .title{
-      font-size:1.02rem;font-weight:800;text-transform:uppercase;letter-spacing:.85px;
+      font-size:1.05rem;font-weight:700;letter-spacing:.5px;color:#ffffff;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
     .sub{
-      margin-top:2px;color:var(--muted);font-size:.78rem;
+      margin-top:2px;color:var(--muted);font-size:.76rem;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
 
     .status{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .pill{
-      border:1px solid var(--line);background:rgba(255,255,255,.03);
-      border-radius:999px;padding:6px 10px;font-size:.76rem;color:#cddcff;font-weight:600;
+      border:1px solid var(--line);background:rgba(255,255,255,.02);
+      border-radius:6px;padding:6px 12px;font-size:.72rem;color:#f1f5f9;font-weight:500;
     }
 
-    .grid{min-height:0;display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+    .grid{min-height:0;display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
     #news{padding:12px;height:100%;box-sizing:border-box}
     #news:not(.scroll-view) .news-card{
       display:flex;
@@ -65,10 +63,10 @@
       height:100%;
       width:auto;
       aspect-ratio:1/1;
-      border-radius:12px;
+      border-radius:10px;
       object-fit:contain;
       background:#050915;
-      border:1px solid #1a2a4e;
+      border:1px solid rgba(255,255,255,0.06);
       flex-shrink:0;
     }
     #news:not(.scroll-view) .news-card > div{
@@ -78,43 +76,63 @@
       height:100%;
       overflow:hidden;
     }
-    #news:not(.scroll-view) .t{font-size:1.2rem;font-weight:800;line-height:1.35;margin-bottom:6px}
-    #news:not(.scroll-view) .m{font-size:.9rem;line-height:1.45;flex-grow:1;overflow-y:auto;margin-bottom:10px}
+    #news:not(.scroll-view) .t{font-size:1.2rem;font-weight:700;line-height:1.35;margin-bottom:6px;color:#ffffff}
+    #news:not(.scroll-view) .m{font-size:.9rem;line-height:1.5;flex-grow:1;overflow-y:auto;margin-bottom:10px;color:#cbd5e1}
     #news.scroll-view{
       overflow-y:auto;
       display:flex;
       flex-direction:column;
       gap:10px;
     }
-    .stack{min-height:0;display:grid;grid-template-rows:1fr 1fr;gap:10px}
+    .stack{min-height:0;display:grid;grid-template-rows:1fr 1fr;gap:12px}
 
     .panel{
-      min-height:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;
-      background:linear-gradient(180deg,var(--panel),var(--panel2));
+      min-height:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+      background:rgba(30, 41, 59, 0.25);
       box-shadow:var(--shadow);display:flex;flex-direction:column;position:relative;
+      backdrop-filter: blur(8px);
     }
     .ph{
-      height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;
-      border-bottom:1px solid var(--line-soft);font-size:.82rem;font-weight:800;
-      text-transform:uppercase;letter-spacing:.8px;background:rgba(255,255,255,.02);
+      height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;
+      border-bottom:1px solid var(--line-soft);font-size:.76rem;font-weight:600;
+      text-transform:uppercase;letter-spacing:.8px;background:rgba(255,255,255,.01);
+      color:#e2e8f0;
     }
     .tag{
-      border:1px solid rgba(88,215,255,.35);color:#b8eeff;background:rgba(88,215,255,.1);
-      font-size:.64rem;padding:2px 8px;border-radius:999px;font-weight:800;letter-spacing:.6px;
+      border:1px solid rgba(59, 130, 246, 0.3);color:#93c5fd;background:rgba(59, 130, 246, 0.1);
+      font-size:.62rem;padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:.6px;
     }
 
     .pb{min-height:0;height:100%;position:relative;overflow:hidden}
     .track{
-      position:absolute;inset:0;padding:10px;display:flex;flex-direction:column;gap:8px;
-      animation:scroll var(--d,45s) linear infinite;will-change:transform;
+      padding:12px;display:flex;flex-direction:column;gap:8px;
+      height:100%;overflow-y:auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.08) transparent;
     }
-    .panel:hover .track{animation-play-state:paused}
-    @keyframes scroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+    .track::-webkit-scrollbar {
+      width: 4px;
+    }
+    .track::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .track::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 99px;
+    }
+    .track::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
 
     .card{
-      border:1px solid #2a3d6d;border-radius:12px;
-      background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
-      padding:9px;
+      border:1px solid rgba(255, 255, 255, 0.04);border-radius:10px;
+      background:rgba(255, 255, 255, 0.02);
+      padding:10px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .card:hover{
+      background:rgba(255, 255, 255, 0.04);
+      border-color:rgba(255, 255, 255, 0.08);
     }
 
     .news-card{display:grid;grid-template-columns:84px 1fr;gap:10px;align-items:start}
@@ -163,15 +181,12 @@
     .link{color:#9be2ff;text-decoration:none;border-bottom:1px dotted rgba(155,226,255,.5)}
 
     .ticker{
-      border:1px solid var(--line);border-radius:10px;overflow:hidden;
-      display:flex;align-items:center;background:rgba(255,255,255,.03);box-shadow:var(--shadow);
+      border:1px solid var(--line);border-radius:10px;
+      display:flex;justify-content:space-between;align-items:center;padding:0 14px;
+      background:rgba(30, 41, 59, 0.45);box-shadow:var(--shadow);
+      font-size:0.72rem;color:var(--muted);
+      backdrop-filter: blur(8px);
     }
-    .label{
-      padding:0 11px;height:100%;display:flex;align-items:center;border-right:1px solid var(--line);
-      font-size:.72rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:#cfe1ff;
-    }
-    .run{white-space:nowrap;padding-left:100%;animation:ticker 42s linear infinite;font-size:.82rem;color:#dfebff}
-    @keyframes ticker{to{transform:translateX(-100%)}}
 
     /* Responsive Breakpoints */
     
@@ -340,7 +355,7 @@
       <img class="logo" src="image.png" alt="Navars Edutech Logo" />
       <div>
         <div class="title">Navars Edutech • Space Operations Live</div>
-        <div class="sub">Universe Today • Phys.org Space News • Astronomy.com • Live Launches</div>
+        <div class="sub">Universe Today • NASA • Space.com • Astronomy.com • AAS • Live Launches</div>
       </div>
     </div>
     <div class="status">
@@ -364,18 +379,18 @@
     <div class="stack">
       <section class="panel">
         <div class="ph">Upcoming Rocket Launches <span class="tag">TRACKING</span></div>
-        <div class="pb"><div id="launches" class="track" style="--d:46s"></div></div>
+        <div class="pb"><div id="launches" class="track"></div></div>
       </section>
       <section class="panel">
         <div class="ph">Upcoming Celestial Events <span class="tag">SKY WATCH</span></div>
-        <div class="pb"><div id="events" class="track" style="--d:46s"></div></div>
+        <div class="pb"><div id="events" class="track"></div></div>
       </section>
     </div>
   </main>
 
   <footer class="ticker">
-    <div class="label">Telemetry Stream</div>
-    <div id="ticker" class="run">Loading real-time space intelligence…</div>
+    <div id="ticker">Loading space operations telemetry…</div>
+    <div>© 2026 NAVARS EDUTECH • SPACE Operations Portal</div>
   </footer>
 </div>
 
@@ -434,12 +449,10 @@
     `;
   }
 
-  function loop(items){ return items.concat(items); }
-
   function setTrack(node, cards){
     if(!node) return;
     const safe = cards.length ? cards : [baseCard("No live data available", "Feed temporarily unavailable.")];
-    node.innerHTML = loop(safe).join("");
+    node.innerHTML = safe.join("");
   }
 
   function showNextNews(){
@@ -519,12 +532,7 @@
       )
     );
 
-    const tickerItems = [
-      ...news.slice(0,3).map((x) => `🛰️ ${x.title}`),
-      ...launches.slice(0,2).map((x) => `🚀 ${x.name}`),
-      ...events.slice(0,2).map((x) => `🌠 ${x.name}`)
-    ];
-    $("ticker").textContent = tickerItems.join("   •   ") || "No live items available";
+    $("ticker").textContent = `SYSTEM STATUS: OPERATIONAL  •  Feeds Synchronized: News (${news.length}) Launches (${launches.length}) Events (${events.length})`;
 
     const failedCount = [newsRes, launchesRes, eventsRes].filter((x) => x.ok === false).length;
     $("statusText").textContent = failedCount
