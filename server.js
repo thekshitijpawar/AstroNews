@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.static(".")); // serves index.html + assets
 
-const PORT = const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080;
 
 /**
  * Real astronomy sources requested:
