@@ -1,9 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const { XMLParser } = require("fast-xml-parser");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 app.use(cors());
+app.use(express.json({ limit: "25mb" }));
 app.use(express.static(".")); // serves index.html + assets
 
 const PORT = 8080;
@@ -22,7 +25,10 @@ const NEWS_FEEDS = [
   { url: "https://www.space.com/science/astrophysics", source: "Space.com Astrophysics", isHtml: true },
   { url: "https://www.space.com/science/particle-physics", source: "Space.com Particle Physics", isHtml: true },
   { url: "https://www.astronomy.com/feed/", source: "Astronomy.com" },
-  { url: "https://aas.org/news/feed", source: "AAS" }
+  { url: "https://aas.org/news/feed", source: "AAS" },
+  { url: "https://news.mit.edu/rss/topic/astrophysics", source: "MIT News" },
+  { url: "https://skyandtelescope.org/astronomy-news/feed", source: "Sky & Telescope" },
+  { url: "https://spacedaily.com/category/news/feed", source: "Space Daily" }
 ];
 
 // Real upcoming launches
@@ -560,6 +566,132 @@ app.get("/api/events", async (_req, res) => {
   } catch (e) {
     console.error("SeaSky events error:", e.message);
     res.json({ ok: false, count: 0, items: [], error: e.message });
+  }
+});
+
+const SUBMISSIONS_FILE = path.join(__dirname, "submissions.json");
+
+// Helper to read submissions
+function readSubmissions() {
+  try {
+    if (!fs.existsSync(SUBMISSIONS_FILE)) {
+      fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify([]));
+      return [];
+    }
+    const data = fs.readFileSync(SUBMISSIONS_FILE, "utf8");
+    return JSON.parse(data);
+  } catch (err) {
+    console.error("Error reading submissions file:", err.message);
+    return [];
+  }
+}
+
+// Helper to write submissions
+function writeSubmissions(data) {
+  try {
+    fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(data, null, 2), "utf8");
+    return true;
+  } catch (err) {
+    console.error("Error writing submissions file:", err.message);
+    return false;
+  }
+}
+
+// 1. Submit Work (Student/Teacher)
+app.post("/api/submissions", (req, res) => {
+  try {
+    const { authorName, role, type, title, content } = req.body;
+    
+    if (!authorName || !role || !type || !title || !content) {
+      return res.status(400).json({ ok: false, error: "Missing required fields." });
+    }
+    
+    if (role !== "student" && role !== "teacher") {
+      return res.status(400).json({ ok: false, error: "Invalid role. Must be student or teacher." });
+    }
+    
+    if (type !== "article" && type !== "drawing") {
+      return res.status(400).json({ ok: false, error: "Invalid type. Must be article or drawing." });
+    }
+
+    const db = readSubmissions();
+    const newSubmission = {
+      id: "_" + Math.random().toString(36).substr(2, 9) + Date.now().toString(36),
+      authorName: cleanText(authorName),
+      role,
+      type,
+      title: cleanText(title),
+      content, // base64 drawing data or text article body
+      status: "pending",
+      submittedAt: new Date().toISOString()
+    };
+
+    db.push(newSubmission);
+    writeSubmissions(db);
+
+    res.json({ ok: true, message: "Submission received! Pending admin approval." });
+  } catch (err) {
+    console.error("Submission error:", err.message);
+    res.status(500).json({ ok: false, error: "Internal server error." });
+  }
+});
+
+// 2. Fetch Approved Submissions (Public)
+app.get("/api/submissions", (req, res) => {
+  try {
+    const db = readSubmissions();
+    const approved = db.filter(item => item.status === "approved");
+    res.json({ ok: true, items: approved });
+  } catch (err) {
+    console.error("Get submissions error:", err.message);
+    res.status(500).json({ ok: false, error: "Internal server error." });
+  }
+});
+
+// 3. Admin: Fetch All Submissions (Moderation)
+app.get("/api/admin/submissions", (req, res) => {
+  try {
+    const auth = req.headers["authorization"] || "";
+    if (auth !== "Kshitijisthebestemployee") {
+      return res.status(401).json({ ok: false, error: "Unauthorized access." });
+    }
+    
+    const db = readSubmissions();
+    const sorted = db.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    res.json({ ok: true, items: sorted });
+  } catch (err) {
+    console.error("Admin get submissions error:", err.message);
+    res.status(500).json({ ok: false, error: "Internal server error." });
+  }
+});
+
+// 4. Admin: Moderate Submission (Approve/Reject)
+app.post("/api/admin/submissions/moderate", (req, res) => {
+  try {
+    const auth = req.headers["authorization"] || "";
+    if (auth !== "Kshitijisthebestemployee") {
+      return res.status(401).json({ ok: false, error: "Unauthorized access." });
+    }
+    
+    const { id, action } = req.body;
+    if (!id || (action !== "approve" && action !== "reject")) {
+      return res.status(400).json({ ok: false, error: "Invalid parameters." });
+    }
+    
+    const db = readSubmissions();
+    const index = db.findIndex(item => item.id === id);
+    
+    if (index === -1) {
+      return res.status(404).json({ ok: false, error: "Submission not found." });
+    }
+    
+    db[index].status = action === "approve" ? "approved" : "rejected";
+    writeSubmissions(db);
+    
+    res.json({ ok: true, message: `Submission successfully ${db[index].status}!` });
+  } catch (err) {
+    console.error("Moderation error:", err.message);
+    res.status(500).json({ ok: false, error: "Internal server error." });
   }
 });
 
