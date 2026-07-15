@@ -603,6 +603,119 @@
       background: #3b82f6;
     }
 
+    /* Showcase Grid and Scroll row styles */
+    .community-showcase-section {
+      width: 100%;
+    }
+    .showcase-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      padding: 10px 0;
+    }
+    @media (max-width: 1024px) {
+      .showcase-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+    }
+    .showcase-panel {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
+    .showcase-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .showcase-title {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .showcase-row {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .showcase-card {
+      min-width: 130px;
+      max-width: 130px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .showcase-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    .showcase-thumb-wrap {
+      width: 100%;
+      height: 80px;
+      background: #090c15;
+      position: relative;
+    }
+    .showcase-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .showcase-pdf-icon {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(96, 165, 250, 0.1);
+      color: #60a5fa;
+      font-size: 1.5rem;
+    }
+    .showcase-info {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .showcase-card-title {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: white;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .showcase-card-author {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .badge.archived {
+      color: #94a3b8;
+      background: rgba(148, 163, 184, 0.1);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
     /* Submissions Grid */
     .submission-grid {
       display: grid;
@@ -891,7 +1004,29 @@
 
   <main id="news" class="hero-section"></main>
 
-  <hr class="divider" />
+  <section class="community-showcase-section" id="communityShowcase" style="display:none; margin: 0 0 10px 0;">
+    <div class="showcase-container">
+      <div class="showcase-panel">
+        <div class="showcase-header">
+          <span class="showcase-title">🎓 Student Creations</span>
+        </div>
+        <div class="showcase-row" id="studentShowcaseRow">
+          <!-- Student cards go here -->
+        </div>
+      </div>
+      <div class="showcase-panel">
+        <div class="showcase-header">
+          <span class="showcase-title">🔬 Teacher Publications</span>
+        </div>
+        <div class="showcase-row" id="teacherShowcaseRow">
+          <!-- Teacher cards go here -->
+        </div>
+      </div>
+    </div>
+    <hr class="divider" style="margin-top: 15px;" />
+  </section>
+
+  <hr class="divider" id="showcaseDivider" />
 
   <section class="bottom-row">
     <div class="bottom-col" id="col1"></div>
@@ -1163,6 +1298,9 @@
 
     if (bottomTimer) clearInterval(bottomTimer);
     bottomTimer = setInterval(rotateBottomRow, 8000);
+
+    // Refresh homepage showcase
+    await loadHomepageShowcase();
 
     $("ticker").textContent = `SYSTEM STATUS: OPERATIONAL  •  Feeds Synchronized: News (${news.length}) Launches (${launches.length}) Events (${events.length})`;
 
@@ -1594,19 +1732,40 @@
                   const isDrawing = item.type === 'drawing';
                   const preview = isDrawing
                     ? `<img class="thumbnail-mini" src="${item.content}" alt="preview" onclick="viewImage('${item.content}')" />`
-                    : `<span style="color:var(--text-muted); cursor:pointer; text-decoration:underline;" onclick="viewFullArticle('${item.title} (Admin Preview)', '${item.authorName}', '${item.submittedAt}', \`${item.content.replace(/`/g, '\\`').replace(/\n/g, '<br>')}\`)">Read text (${item.content.split(' ').length} words)</span>`;
+                    : `<span style="color:var(--text-muted); cursor:pointer; text-decoration:underline;" onclick="viewFullArticle('${item.title} (Admin Preview)', '${item.authorName}', '${item.submittedAt}', '${item.content}')">View PDF</span>`;
                   
-                  const isPending = item.status === 'pending';
                   const statusBadge = `<span class="badge ${item.status}">${item.status}</span>`;
                   
-                  const actionButtons = isPending
-                    ? `
+                  let actionButtons = "";
+                  if (item.status === 'pending') {
+                    actionButtons = `
                       <div style="display:flex; gap: 8px;">
                         <button class="btn-action btn-approve" onclick="moderateSubmission('${item.id}', 'approve')">Approve</button>
                         <button class="btn-action btn-reject" onclick="moderateSubmission('${item.id}', 'reject')">Reject</button>
                       </div>
-                    `
-                    : `<span style="color:var(--text-muted); font-size:0.76rem;">Archived</span>`;
+                    `;
+                  } else if (item.status === 'approved') {
+                    actionButtons = `
+                      <div style="display:flex; gap: 8px;">
+                        <button class="btn-action" style="color: #fbbf24; background: rgba(251, 191, 36, 0.15); border-color: rgba(251, 191, 36, 0.25);" onclick="moderateSubmission('${item.id}', 'archive')">Archive</button>
+                        <button class="btn-action btn-reject" onclick="moderateSubmission('${item.id}', 'reject')">Reject</button>
+                      </div>
+                    `;
+                  } else if (item.status === 'archived') {
+                    actionButtons = `
+                      <div style="display:flex; gap: 8px;">
+                        <button class="btn-action btn-approve" onclick="moderateSubmission('${item.id}', 'approve')">Publish (Restore)</button>
+                        <button class="btn-action btn-reject" onclick="moderateSubmission('${item.id}', 'reject')">Reject</button>
+                      </div>
+                    `;
+                  } else if (item.status === 'rejected') {
+                    actionButtons = `
+                      <div style="display:flex; gap: 8px;">
+                        <button class="btn-action btn-approve" onclick="moderateSubmission('${item.id}', 'approve')">Approve</button>
+                        <button class="btn-action" style="color: #fbbf24; background: rgba(251, 191, 36, 0.15); border-color: rgba(251, 191, 36, 0.25);" onclick="moderateSubmission('${item.id}', 'archive')">Archive</button>
+                      </div>
+                    `;
+                  }
                   
                   return `
                     <tr>
@@ -1646,13 +1805,101 @@
       const data = await res.json();
       if (res.ok && data.ok) {
         loadAdminPortal();
+        loadHomepageShowcase();
       } else {
-        alert("Moderation failed: " + data.error);
+        alert("Moderate failed: " + data.error);
       }
     } catch (err) {
-      alert("Moderation error: " + err.message);
+      alert("Moderate error: " + err.message);
     }
   }
+
+  window.renderShowcase = function(items) {
+    const studentRow = $("studentShowcaseRow");
+    const teacherRow = $("teacherShowcaseRow");
+    const showcaseSec = $("communityShowcase");
+    const divider = $("showcaseDivider");
+    
+    if (!studentRow || !teacherRow || !showcaseSec) return;
+    
+    const approved = items.filter(x => x.status === 'approved');
+    const students = approved.filter(x => x.role === 'student');
+    const teachers = approved.filter(x => x.role === 'teacher');
+    
+    if (approved.length === 0) {
+      showcaseSec.style.display = "none";
+      if (divider) divider.style.display = "block";
+      return;
+    }
+    
+    showcaseSec.style.display = "block";
+    if (divider) divider.style.display = "none";
+    
+    const makeCard = (item) => {
+      const isDrawing = item.type === 'drawing';
+      const previewHtml = isDrawing
+        ? `<img class="showcase-thumb" src="${item.content}" alt="" loading="lazy" />`
+        : `<div class="showcase-pdf-icon">📄</div>`;
+      
+      const clickAction = isDrawing
+        ? `viewImage('${item.content}')`
+        : `viewFullArticleFromShowcase('${item.title}', '${item.authorName}', '${item.submittedAt}', '${item.content}', '${item.role}')`;
+      
+      return `
+        <div class="showcase-card" onclick="${clickAction}">
+          <div class="showcase-thumb-wrap">
+            ${previewHtml}
+          </div>
+          <div class="showcase-info">
+            <span class="showcase-card-title">${item.title}</span>
+            <span class="showcase-card-author">By ${item.authorName}</span>
+          </div>
+        </div>
+      `;
+    };
+    
+    studentRow.innerHTML = students.length === 0
+      ? `<div style="color:var(--text-muted); font-size:0.75rem; padding: 20px 0;">No student creations approved yet.</div>`
+      : students.map(makeCard).join("");
+      
+    teacherRow.innerHTML = teachers.length === 0
+      ? `<div style="color:var(--text-muted); font-size:0.75rem; padding: 20px 0;">No teacher publications approved yet.</div>`
+      : teachers.map(makeCard).join("");
+  };
+
+  window.loadHomepageShowcase = async function() {
+    try {
+      const res = await fetch("/api/submissions");
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        renderShowcase(data.items || []);
+      }
+    } catch (err) {
+      console.error("Homepage showcase fetch error:", err.message);
+    }
+  };
+
+  window.viewFullArticleFromShowcase = function(title, author, date, content, role) {
+    $("portalModal").style.display = "flex";
+    $("modalTitle").textContent = role === 'student' ? "Student Publication" : "Teacher Publication";
+    
+    const body = $("modalBody");
+    body.innerHTML = `
+      <div style="margin-bottom: 20px; height: 100%; display: flex; flex-direction: column;">
+        <div style="margin-bottom: 20px;">
+          <button class="btn" style="border-radius: 8px; margin-bottom: 10px;" onclick="closePortalModal()">✕ Close Reader</button>
+          <h1 style="font-family:var(--font-display); font-size: 1.6rem; font-weight: 600; line-height: 1.25; margin-bottom: 8px;">${title}</h1>
+          <div style="font-size: 0.8rem; color:var(--text-muted);">Published by ${author} on ${fmtDateTime(date)}</div>
+          <div style="margin-top: 14px; display: flex; gap: 12px;">
+            <a href="${content}" target="_blank" class="btn" style="border-radius: 8px; background: white; color: black; border-color:white; text-decoration:none; padding: 6px 16px; font-size:0.8rem; font-weight:600;">Open PDF in New Tab ↗</a>
+          </div>
+        </div>
+        <div style="flex-grow: 1; min-height: 500px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #111;">
+          <iframe src="${content}" width="100%" height="100%" style="border: none; background: white;"></iframe>
+        </div>
+      </div>
+    `;
+  };
 </script>
 </body>
 </html>

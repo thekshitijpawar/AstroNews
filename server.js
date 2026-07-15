@@ -665,7 +665,7 @@ app.get("/api/admin/submissions", (req, res) => {
   }
 });
 
-// 4. Admin: Moderate Submission (Approve/Reject)
+// 4. Admin: Moderate Submission (Approve/Reject/Archive)
 app.post("/api/admin/submissions/moderate", (req, res) => {
   try {
     const auth = req.headers["authorization"] || "";
@@ -674,7 +674,7 @@ app.post("/api/admin/submissions/moderate", (req, res) => {
     }
     
     const { id, action } = req.body;
-    if (!id || (action !== "approve" && action !== "reject")) {
+    if (!id || (action !== "approve" && action !== "reject" && action !== "archive")) {
       return res.status(400).json({ ok: false, error: "Invalid parameters." });
     }
     
@@ -685,7 +685,7 @@ app.post("/api/admin/submissions/moderate", (req, res) => {
       return res.status(404).json({ ok: false, error: "Submission not found." });
     }
     
-    db[index].status = action === "approve" ? "approved" : "rejected";
+    db[index].status = action === "approve" ? "approved" : (action === "reject" ? "rejected" : "archived");
     writeSubmissions(db);
     
     res.json({ ok: true, message: `Submission successfully ${db[index].status}!` });
