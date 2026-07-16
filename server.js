@@ -640,8 +640,8 @@ app.post("/api/submissions", (req, res) => {
 app.get("/api/submissions", (req, res) => {
   try {
     const db = readSubmissions();
-    const approved = db.filter(item => item.status === "approved");
-    res.json({ ok: true, items: approved });
+    const items = db.filter(item => item.status === "approved");
+    res.json({ ok: true, items });
   } catch (err) {
     console.error("Get submissions error:", err.message);
     res.status(500).json({ ok: false, error: "Internal server error." });

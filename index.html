@@ -37,12 +37,12 @@
       position: fixed;
       inset: 0;
       background-image: 
-        linear-gradient(to bottom, rgba(4, 5, 7, 0.94), rgba(4, 5, 7, 0.9)),
+        linear-gradient(to bottom, rgba(4, 5, 7, 0.4), rgba(4, 5, 7, 0.2)),
         url('https://images-assets.nasa.gov/image/carina_nebula/carina_nebula~medium.jpg');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
-      opacity: 0.35;
+      opacity: 0.40;
       pointer-events: none;
       z-index: 0;
       transition: opacity 0.15s ease;
@@ -470,13 +470,13 @@
       padding: 40px;
     }
     .modal-window {
-      background: rgba(10, 15, 26, 0.85);
+      background: rgba(10, 15, 26, 0.95);
       border: 1px solid var(--border);
       border-radius: 20px;
-      width: 100%;
-      max-width: 1000px;
-      height: 100%;
-      max-height: 80vh;
+      width: 95vw;
+      max-width: 1420px;
+      height: 90vh;
+      max-height: 90vh;
       display: grid;
       grid-template-rows: 64px 1fr;
       overflow: hidden;
@@ -515,6 +515,9 @@
     .modal-body {
       padding: 30px;
       overflow-y: auto;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Lightbox Modal */
@@ -530,11 +533,11 @@
       cursor: zoom-out;
     }
     .lightbox-img {
-      max-width: 90vw;
-      max-height: 90vh;
+      max-width: 95vw;
+      max-height: 95vh;
       object-fit: contain;
       border-radius: 8px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
       animation: modal-zoom 0.25s ease-out;
     }
 
@@ -603,117 +606,41 @@
       background: #3b82f6;
     }
 
-    /* Showcase Grid and Scroll row styles */
-    .community-showcase-section {
-      width: 100%;
-    }
-    .showcase-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-      padding: 10px 0;
-    }
-    @media (max-width: 1024px) {
-      .showcase-container {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-    }
-    .showcase-panel {
-      background: rgba(255, 255, 255, 0.01);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-width: 0;
-    }
-    .showcase-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .showcase-title {
-      font-family: var(--font-display);
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: white;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-    .showcase-row {
-      display: flex;
-      gap: 16px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-    }
-    .showcase-card {
-      min-width: 130px;
-      max-width: 130px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-    }
-    .showcase-card:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.2);
-      transform: translateY(-2px);
-    }
-    .showcase-thumb-wrap {
-      width: 100%;
-      height: 80px;
-      background: #090c15;
-      position: relative;
-    }
-    .showcase-thumb {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .showcase-pdf-icon {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(96, 165, 250, 0.1);
-      color: #60a5fa;
-      font-size: 1.5rem;
-    }
-    .showcase-info {
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 0;
-    }
-    .showcase-card-title {
-      font-size: 0.72rem;
-      font-weight: 500;
-      color: white;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .showcase-card-author {
-      font-size: 0.62rem;
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
     .badge.archived {
       color: #94a3b8;
       background: rgba(148, 163, 184, 0.1);
       border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    /* Sidebar Enlarged Showcase Card for Drawings & PDFs */
+    .sidebar-enlarged-card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #090c15;
+      transition: border-color 0.2s ease;
+      cursor: pointer;
+    }
+    .sidebar-enlarged-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .sidebar-enlarged-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .sidebar-enlarged-overlay {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.9) 60%);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Submissions Grid */
@@ -993,40 +920,13 @@
       <span class="clock-pill" id="statusText">Initializing…</span>
     </div>
     <div style="display: flex; align-items: center; gap: 20px;">
-      <div class="brightness-control">
-        <span>🔅</span>
-        <input type="range" id="bgBrightness" min="5" max="100" value="35" step="5" title="Adjust Background Brightness" />
-        <span>🔆</span>
-      </div>
       <button id="toggleNewsMode" class="btn">📺 Slideshow</button>
     </div>
   </header>
 
   <main id="news" class="hero-section"></main>
 
-  <section class="community-showcase-section" id="communityShowcase" style="display:none; margin: 0 0 10px 0;">
-    <div class="showcase-container">
-      <div class="showcase-panel">
-        <div class="showcase-header">
-          <span class="showcase-title">🎓 Student Creations</span>
-        </div>
-        <div class="showcase-row" id="studentShowcaseRow">
-          <!-- Student cards go here -->
-        </div>
-      </div>
-      <div class="showcase-panel">
-        <div class="showcase-header">
-          <span class="showcase-title">🔬 Teacher Publications</span>
-        </div>
-        <div class="showcase-row" id="teacherShowcaseRow">
-          <!-- Teacher cards go here -->
-        </div>
-      </div>
-    </div>
-    <hr class="divider" style="margin-top: 15px;" />
-  </section>
-
-  <hr class="divider" id="showcaseDivider" />
+  <hr class="divider" />
 
   <section class="bottom-row">
     <div class="bottom-col" id="col1"></div>
@@ -1099,7 +999,7 @@
     // Active Spotlight item
     const activeItem = newsList[newsIndex];
     
-    // Get the next 4 items in the list for the sidebar
+    // Get the next 4 items in the list for the sidebar fallback
     const listItems = [];
     for (let i = 1; i <= 4; i++) {
       const nextIdx = (newsIndex + i) % newsList.length;
@@ -1112,6 +1012,65 @@
     
     const hasImg = !!activeItem.imageUrl;
     const activeImgUrl = hasImg ? activeItem.imageUrl : "https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg";
+
+    // Determine what to show in the sidebar (creative submissions slideshow vs standard news)
+    let sidebarHtml = "";
+    if (approvedSubmissionsList && approvedSubmissionsList.length > 0) {
+      const subCount = approvedSubmissionsList.length;
+      const sub = approvedSubmissionsList[submissionIndex % subCount];
+      
+      const isDrawing = sub.type === 'drawing';
+      const typeLabel = `${sub.role === 'student' ? 'Student' : 'Teacher'} ${isDrawing ? 'Drawing' : 'Article'}`;
+      
+      const clickAction = isDrawing
+        ? `viewImage('${sub.content}')`
+        : `viewFullArticleFromShowcase('${sub.title}', '${sub.authorName}', '${sub.submittedAt}', '${sub.content}', '${sub.role}')`;
+      
+      if (isDrawing) {
+        sidebarHtml = `
+          <div class="sidebar-enlarged-card" onclick="${clickAction}">
+            <img class="sidebar-enlarged-img" src="${sub.content}" alt="" />
+            <div class="sidebar-enlarged-overlay">
+              <div class="story-meta" style="color: #60a5fa; font-weight: 600; margin-bottom:4px;">✨ ${typeLabel.toUpperCase()}</div>
+              <div style="font-size:0.85rem; font-weight:700; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${sub.title}</div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">By ${sub.authorName} • Click to expand</div>
+            </div>
+          </div>
+        `;
+      } else {
+        // PDF article: embed pdf iframe directly in the sidebar so the actual text of the PDF is visible!
+        // We use a transparent click-catcher layer on top so that clicking anywhere opens the reader modal.
+        sidebarHtml = `
+          <div class="sidebar-enlarged-card">
+            <div style="position:absolute; inset:0; z-index:10; cursor:pointer;" onclick="${clickAction}"></div>
+            <iframe src="${sub.content}#toolbar=0&navpanes=0&scrollbar=0" width="100%" height="100%" style="border: none; background: white; border-radius: 8px; pointer-events: none;"></iframe>
+            <div class="sidebar-enlarged-overlay" style="z-index: 20;">
+              <div class="story-meta" style="color: #60a5fa; font-weight: 600; margin-bottom:4px;">✨ ${typeLabel.toUpperCase()}</div>
+              <div style="font-size:0.85rem; font-weight:700; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${sub.title}</div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">By ${sub.authorName} • Click to read</div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Advance submission index by 1 for next rotation step
+      submissionIndex = (submissionIndex + 1) % subCount;
+    } else {
+      // Fallback: show standard news list
+      sidebarHtml = listItems.map(({ item, globalIndex }) => {
+        const cardImg = item.imageUrl || "https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg";
+        return `
+          <div class="story-card" onclick="selectSpotlight(${globalIndex})">
+            <img class="story-thumb" src="${cardImg}" alt=""
+                 onerror="this.src='https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg'" />
+            <div class="story-details">
+              <div class="story-meta">${item.source} • ${fmtDate(item.publishedAt)}</div>
+              <div class="story-title">${item.title}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
 
     node.innerHTML = `
       <div class="spotlight-text">
@@ -1130,19 +1089,7 @@
       </div>
       
       <div class="stories-list">
-        ${listItems.map(({ item, globalIndex }) => {
-          const cardImg = item.imageUrl || "https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg";
-          return `
-            <div class="story-card" onclick="selectSpotlight(${globalIndex})">
-              <img class="story-thumb" src="${cardImg}" alt=""
-                   onerror="this.src='https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg'" />
-              <div class="story-details">
-                <div class="story-meta">${item.source} • ${fmtDate(item.publishedAt)}</div>
-                <div class="story-title">${item.title}</div>
-              </div>
-            </div>
-          `;
-        }).join("")}
+        ${sidebarHtml}
       </div>
     `;
     
@@ -1332,18 +1279,20 @@
     });
   }
 
-  const brightnessSlider = $("bgBrightness");
-  const bgOverlay = $("bgOverlay");
-  if (brightnessSlider && bgOverlay) {
-    brightnessSlider.addEventListener("input", (e) => {
-      bgOverlay.style.opacity = e.target.value / 100;
-    });
-  }
+  // Background brightness is fixed at the optimal value (0.30 opacity) defined in CSS
 
   // Submissions and moderation state
   let activeCornerTab = "drawings";
+  let activeAdminTab = "pending";
   let adminToken = null;
   let uploadedBase64 = "";
+  let approvedSubmissionsList = [];
+  let submissionIndex = 0;
+
+  window.setAdminTab = function(tab) {
+    activeAdminTab = tab;
+    loadAdminPortal();
+  }
 
   window.openCorner = function(role) {
     $("portalModal").style.display = "flex";
@@ -1392,8 +1341,8 @@
   }
 
   window.renderStudentCorner = function(items) {
-    const drawings = items.filter(x => x.role === 'student' && x.type === 'drawing');
-    const articles = items.filter(x => x.role === 'student' && x.type === 'article');
+    const drawings = items.filter(x => x.role === 'student' && x.type === 'drawing' && x.status === 'approved');
+    const articles = items.filter(x => x.role === 'student' && x.type === 'article' && x.status === 'approved');
     
     const body = $("modalBody");
     $("modalTitle").textContent = "Student's Corner";
@@ -1474,8 +1423,8 @@
   }
 
   window.renderTeacherCorner = function(items) {
-    const drawings = items.filter(x => x.role === 'teacher' && x.type === 'drawing');
-    const articles = items.filter(x => x.role === 'teacher' && x.type === 'article');
+    const drawings = items.filter(x => x.role === 'teacher' && x.type === 'drawing' && x.status === 'approved');
+    const articles = items.filter(x => x.role === 'teacher' && x.type === 'article' && x.status === 'approved');
     
     const body = $("modalBody");
     $("modalTitle").textContent = "Teacher's Corner";
@@ -1707,12 +1656,37 @@
       const data = await res.json();
       if (res.ok && data.ok) {
         const items = data.items || [];
-        if (items.length === 0) {
-          body.innerHTML = `<div style="text-align:center; padding: 40px 0; color:var(--text-muted);">No submissions found in the database.</div>`;
+        
+        // Group items for badge counts
+        const pendingItems = items.filter(x => x.status === 'pending');
+        const approvedItems = items.filter(x => x.status === 'approved');
+        const archivedItems = items.filter(x => x.status === 'archived');
+        const rejectedItems = items.filter(x => x.status === 'rejected');
+        
+        // Filter list based on active tab
+        let filteredItems = [];
+        if (activeAdminTab === 'pending') filteredItems = pendingItems;
+        else if (activeAdminTab === 'approved') filteredItems = approvedItems;
+        else if (activeAdminTab === 'archived') filteredItems = archivedItems;
+        else if (activeAdminTab === 'rejected') filteredItems = rejectedItems;
+        
+        const tabsHtml = `
+          <div class="corner-tabs" style="margin-bottom: 20px;">
+            <div class="tab-btn-group">
+              <button class="tab-btn ${activeAdminTab === 'pending' ? 'active' : ''}" onclick="setAdminTab('pending')">Pending Moderation (${pendingItems.length})</button>
+              <button class="tab-btn ${activeAdminTab === 'approved' ? 'active' : ''}" onclick="setAdminTab('approved')">Approved / Live (${approvedItems.length})</button>
+              <button class="tab-btn ${activeAdminTab === 'archived' ? 'active' : ''}" onclick="setAdminTab('archived')">Archive Folder (${archivedItems.length})</button>
+              <button class="tab-btn ${activeAdminTab === 'rejected' ? 'active' : ''}" onclick="setAdminTab('rejected')">Rejected (${rejectedItems.length})</button>
+            </div>
+          </div>
+        `;
+        
+        if (filteredItems.length === 0) {
+          body.innerHTML = tabsHtml + `<div style="text-align:center; padding: 40px 0; color:var(--text-muted);">No entries found under this section.</div>`;
           return;
         }
         
-        body.innerHTML = `
+        const tableHtml = `
           <div style="overflow-x: auto;">
             <table class="admin-table">
               <thead>
@@ -1727,7 +1701,7 @@
                 </tr>
               </thead>
               <tbody>
-                ${items.map(item => {
+                ${filteredItems.map(item => {
                   const dateStr = fmtDate(item.submittedAt);
                   const isDrawing = item.type === 'drawing';
                   const preview = isDrawing
@@ -1783,6 +1757,8 @@
             </table>
           </div>
         `;
+        
+        body.innerHTML = tabsHtml + tableHtml;
       } else {
         adminToken = null;
         renderAdminLogin();
@@ -1814,65 +1790,19 @@
     }
   }
 
-  window.renderShowcase = function(items) {
-    const studentRow = $("studentShowcaseRow");
-    const teacherRow = $("teacherShowcaseRow");
-    const showcaseSec = $("communityShowcase");
-    const divider = $("showcaseDivider");
-    
-    if (!studentRow || !teacherRow || !showcaseSec) return;
-    
-    const approved = items.filter(x => x.status === 'approved');
-    const students = approved.filter(x => x.role === 'student');
-    const teachers = approved.filter(x => x.role === 'teacher');
-    
-    if (approved.length === 0) {
-      showcaseSec.style.display = "none";
-      if (divider) divider.style.display = "block";
-      return;
-    }
-    
-    showcaseSec.style.display = "block";
-    if (divider) divider.style.display = "none";
-    
-    const makeCard = (item) => {
-      const isDrawing = item.type === 'drawing';
-      const previewHtml = isDrawing
-        ? `<img class="showcase-thumb" src="${item.content}" alt="" loading="lazy" />`
-        : `<div class="showcase-pdf-icon">📄</div>`;
-      
-      const clickAction = isDrawing
-        ? `viewImage('${item.content}')`
-        : `viewFullArticleFromShowcase('${item.title}', '${item.authorName}', '${item.submittedAt}', '${item.content}', '${item.role}')`;
-      
-      return `
-        <div class="showcase-card" onclick="${clickAction}">
-          <div class="showcase-thumb-wrap">
-            ${previewHtml}
-          </div>
-          <div class="showcase-info">
-            <span class="showcase-card-title">${item.title}</span>
-            <span class="showcase-card-author">By ${item.authorName}</span>
-          </div>
-        </div>
-      `;
-    };
-    
-    studentRow.innerHTML = students.length === 0
-      ? `<div style="color:var(--text-muted); font-size:0.75rem; padding: 20px 0;">No student creations approved yet.</div>`
-      : students.map(makeCard).join("");
-      
-    teacherRow.innerHTML = teachers.length === 0
-      ? `<div style="color:var(--text-muted); font-size:0.75rem; padding: 20px 0;">No teacher publications approved yet.</div>`
-      : teachers.map(makeCard).join("");
-  };
-
   window.loadHomepageShowcase = async function() {
     try {
       const res = await fetch("/api/submissions");
       const data = await res.json();
       if (res.ok && data.ok) {
-        renderShowcase(data.items || []);
+        const submissions = data.items || [];
+        approvedSubmissionsList = submissions.filter(x => x.status === 'approved');
+        
+        // Re-render sidebar in-place without advancing news Index
+        if (newsList.length > 0) {
+          newsIndex = (newsIndex - 1 + newsList.length) % newsList.length;
+          showNextNews();
+        }
       }
     } catch (err) {
       console.error("Homepage showcase fetch error:", err.message);
