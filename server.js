@@ -600,10 +600,10 @@ function writeSubmissions(data) {
 // 1. Submit Work (Student/Teacher)
 app.post("/api/submissions", (req, res) => {
   try {
-    const { authorName, role, type, title, content } = req.body;
+    const { authorName, role, type, title, content, schoolName, inchargeName } = req.body;
     
-    if (!authorName || !role || !type || !title || !content) {
-      return res.status(400).json({ ok: false, error: "Missing required fields." });
+    if (!authorName || !role || !type || !title || !content || !schoolName || !inchargeName) {
+      return res.status(400).json({ ok: false, error: "Missing required fields. Please fill in all fields." });
     }
     
     if (role !== "student" && role !== "teacher") {
@@ -621,7 +621,9 @@ app.post("/api/submissions", (req, res) => {
       role,
       type,
       title: cleanText(title),
-      content, // base64 drawing data or text article body
+      schoolName: cleanText(schoolName),
+      inchargeName: cleanText(inchargeName),
+      content, // base64 drawing data or PDF content
       status: "pending",
       submittedAt: new Date().toISOString()
     };

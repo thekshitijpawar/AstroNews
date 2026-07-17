@@ -937,7 +937,13 @@
 
   <footer class="footer-bar">
     <div id="ticker">SYSTEM STATUS: OPERATIONAL</div>
-    <div>© 2026 NAVARS EDUTECH • SPACE Operations Portal</div>
+    <div style="display: flex; gap: 12px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+      <span>© 2026 NAVARS EDUTECH • SPACE Operations Portal</span>
+      <span style="color: var(--border);">|</span>
+      <a href="https://spacelabs.navarsedutech.com/" target="_blank" style="color: #60a5fa; text-decoration: none; font-weight: 500; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">Space Labs ↗</a>
+      <span style="color: var(--border);">|</span>
+      <a href="mailto:kshitijpawar@navarsedutech.com" style="color: #60a5fa; text-decoration: none; font-weight: 500; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">Contact: kshitijpawar@navarsedutech.com</a>
+    </div>
   </footer>
 </div>
 
@@ -956,7 +962,10 @@
 
 <!-- Image Lightbox Modal for Drawings -->
 <div class="lightbox-overlay" id="lightboxModal" onclick="closeLightbox()">
-  <img class="lightbox-img" id="lightboxImg" src="" alt="drawing view" />
+  <div style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; max-width: 95vw; max-height: 95vh; pointer-events: auto;">
+    <img class="lightbox-img" id="lightboxImg" src="" alt="drawing view" style="max-height: 80vh;" />
+    <div id="lightboxCaption" style="margin-top: 15px; text-align: center; font-family: var(--font-sans); color: white; padding: 10px 20px; background: rgba(10, 15, 26, 0.9); border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; max-width: 600px;"></div>
+  </div>
 </div>
 
 <script>
@@ -1023,8 +1032,8 @@
       const typeLabel = `${sub.role === 'student' ? 'Student' : 'Teacher'} ${isDrawing ? 'Drawing' : 'Article'}`;
       
       const clickAction = isDrawing
-        ? `viewImage('${sub.content}')`
-        : `viewFullArticleFromShowcase('${sub.title}', '${sub.authorName}', '${sub.submittedAt}', '${sub.content}', '${sub.role}')`;
+        ? `viewImage('${sub.content}', '${sub.title}', '${sub.authorName}', '${sub.schoolName || ''}', '${sub.inchargeName || ''}')`
+        : `viewFullArticleFromShowcase('${sub.title}', '${sub.authorName}', '${sub.submittedAt}', '${sub.content}', '${sub.role}', '${sub.schoolName || ''}', '${sub.inchargeName || ''}')`;
       
       if (isDrawing) {
         sidebarHtml = `
@@ -1308,10 +1317,24 @@
     fetchSubmissionsAndRender(role);
   }
 
-  window.viewImage = function(base64) {
+  window.viewImage = function(base64, title = '', author = '', schoolName = '', inchargeName = '') {
     const lightbox = $("lightboxModal");
     const img = $("lightboxImg");
     img.src = base64;
+    
+    const caption = $("lightboxCaption");
+    if (caption) {
+      if (title || author) {
+        caption.style.display = "block";
+        caption.innerHTML = `
+          <strong style="font-size:0.95rem; color: #60a5fa;">${title || 'Space Artwork'}</strong> by ${author || 'Unknown'}
+          ${schoolName ? `<br><span style="font-size:0.8rem; color:#ccc;">School: ${schoolName}</span>` : ''}
+          ${inchargeName ? ` • <span style="font-size:0.8rem; color:#ccc;">Space Lab Educator: ${inchargeName}</span>` : ''}
+        `;
+      } else {
+        caption.style.display = "none";
+      }
+    }
     lightbox.style.display = "flex";
   }
 
@@ -1385,7 +1408,7 @@
         contentHtml = `
           <div class="submission-list">
             ${articles.map(a => `
-              <div class="submission-list-item" onclick="viewFullArticle('${a.title}', '${a.authorName}', '${a.submittedAt}', '${a.content}')">
+              <div class="submission-list-item" onclick="viewFullArticle('${a.title}', '${a.authorName}', '${a.submittedAt}', '${a.content}', '${a.schoolName || ''}', '${a.inchargeName || ''}')">
                 <div class="article-header">
                   <div class="article-title">${a.title}</div>
                   <div class="article-author">By ${a.authorName} • ${fmtDate(a.submittedAt)}</div>
@@ -1401,7 +1424,7 @@
     body.innerHTML = headerHtml + contentHtml;
   }
 
-  window.viewFullArticle = function(title, author, date, content) {
+  window.viewFullArticle = function(title, author, date, content, schoolName = '', inchargeName = '') {
     const body = $("modalBody");
     const isTeacher = title.includes("Teacher") || author.toLowerCase().includes("teacher") || title.includes("Admin");
     const backRole = isTeacher ? 'teacher' : 'student';
@@ -1410,7 +1433,11 @@
         <div style="margin-bottom: 20px;">
           <button class="btn" style="border-radius: 8px; margin-bottom: 10px;" onclick="fetchSubmissionsAndRender('${backRole}')">← Back</button>
           <h1 style="font-family:var(--font-display); font-size: 1.6rem; font-weight: 600; line-height: 1.25; margin-bottom: 8px;">${title}</h1>
-          <div style="font-size: 0.8rem; color:var(--text-muted);">Published by ${author} on ${fmtDateTime(date)}</div>
+          <div style="font-size: 0.8rem; color:var(--text-muted);">
+            Published by <strong>${author}</strong> on ${fmtDateTime(date)}
+            ${schoolName ? `<br><span style="color:#60a5fa; font-weight: 500;">School: ${schoolName}</span>` : ""}
+            ${inchargeName ? ` • <span style="color:var(--text-muted);">Space Lab Educator: ${inchargeName}</span>` : ""}
+          </div>
           <div style="margin-top: 14px; display: flex; gap: 12px;">
             <a href="${content}" target="_blank" class="btn" style="border-radius: 8px; background: white; color: black; border-color:white; text-decoration:none; padding: 6px 16px; font-size:0.8rem; font-weight:600;">Open PDF in New Tab ↗</a>
           </div>
@@ -1447,7 +1474,7 @@
         contentHtml = `
           <div class="submission-grid">
             ${drawings.map(d => `
-              <div class="submission-card" onclick="viewImage('${d.content}')">
+              <div class="submission-card" onclick="viewImage('${d.content}', '${d.title}', '${d.authorName}', '${d.schoolName || ''}', '${d.inchargeName || ''}')">
                 <div class="submission-thumb-wrap">
                   <img class="submission-thumb" src="${d.content}" alt="" loading="lazy" />
                 </div>
@@ -1467,7 +1494,7 @@
         contentHtml = `
           <div class="submission-list">
             ${articles.map(a => `
-              <div class="submission-list-item" onclick="viewFullArticle('${a.title}', '${a.authorName}', '${a.submittedAt}', '${a.content}')">
+              <div class="submission-list-item" onclick="viewFullArticle('${a.title}', '${a.authorName}', '${a.submittedAt}', '${a.content}', '${a.schoolName || ''}', '${a.inchargeName || ''}')">
                 <div class="article-header">
                   <div class="article-title">${a.title}</div>
                   <div class="article-author">By ${a.authorName} • ${fmtDate(a.submittedAt)}</div>
@@ -1498,6 +1525,16 @@
         <div class="form-group">
           <label class="form-label">Title</label>
           <input type="text" id="subTitle" class="form-control" placeholder="Title of your work" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">School Name</label>
+          <input type="text" id="subSchool" class="form-control" placeholder="e.g. Oakridge International School" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Space Lab Incharge / Educator</label>
+          <input type="text" id="subIncharge" class="form-control" placeholder="e.g. Mr. Kshitij Pawar" required />
         </div>
         
         <div class="form-group">
@@ -1565,6 +1602,8 @@
     const authorName = $("subAuthor").value;
     const title = $("subTitle").value;
     const type = $("subType").value;
+    const schoolName = $("subSchool").value;
+    const inchargeName = $("subIncharge").value;
     
     if (!uploadedBase64) {
       alert("Please wait for the file to load or upload a valid file.");
@@ -1578,7 +1617,7 @@
       const res = await fetch("/api/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ authorName, role, type, title, content })
+        body: JSON.stringify({ authorName, role, type, title, content, schoolName, inchargeName })
       });
       const data = await res.json();
       if (data.ok) {
@@ -1705,8 +1744,8 @@
                   const dateStr = fmtDate(item.submittedAt);
                   const isDrawing = item.type === 'drawing';
                   const preview = isDrawing
-                    ? `<img class="thumbnail-mini" src="${item.content}" alt="preview" onclick="viewImage('${item.content}')" />`
-                    : `<span style="color:var(--text-muted); cursor:pointer; text-decoration:underline;" onclick="viewFullArticle('${item.title} (Admin Preview)', '${item.authorName}', '${item.submittedAt}', '${item.content}')">View PDF</span>`;
+                    ? `<img class="thumbnail-mini" src="${item.content}" alt="preview" onclick="viewImage('${item.content}', '${item.title}', '${item.authorName}', '${item.schoolName || ''}', '${item.inchargeName || ''}')" />`
+                    : `<span style="color:var(--text-muted); cursor:pointer; text-decoration:underline;" onclick="viewFullArticle('${item.title} (Admin Preview)', '${item.authorName}', '${item.submittedAt}', '${item.content}', '${item.schoolName || ''}', '${item.inchargeName || ''}')">View PDF</span>`;
                   
                   const statusBadge = `<span class="badge ${item.status}">${item.status}</span>`;
                   
@@ -1743,7 +1782,12 @@
                   
                   return `
                     <tr>
-                      <td><strong>${item.authorName}</strong><br><span style="font-size:0.7rem; color:var(--text-muted);">${dateStr}</span></td>
+                      <td>
+                        <strong>${item.authorName}</strong><br>
+                        <span style="font-size:0.75rem; color:#60a5fa; font-weight: 500;">School: ${item.schoolName || 'N/A'}</span><br>
+                        <span style="font-size:0.7rem; color:var(--text-muted);">Incharge/Educator: ${item.inchargeName || 'N/A'}</span><br>
+                        <span style="font-size:0.65rem; color:#888;">${dateStr}</span>
+                      </td>
                       <td><span style="text-transform:uppercase; font-size:0.74rem;">${item.role}</span></td>
                       <td><span style="text-transform:uppercase; font-size:0.74rem;">${item.type}</span></td>
                       <td>${item.title}</td>
@@ -1809,7 +1853,7 @@
     }
   };
 
-  window.viewFullArticleFromShowcase = function(title, author, date, content, role) {
+  window.viewFullArticleFromShowcase = function(title, author, date, content, role, schoolName = '', inchargeName = '') {
     $("portalModal").style.display = "flex";
     $("modalTitle").textContent = role === 'student' ? "Student Publication" : "Teacher Publication";
     
@@ -1819,7 +1863,11 @@
         <div style="margin-bottom: 20px;">
           <button class="btn" style="border-radius: 8px; margin-bottom: 10px;" onclick="closePortalModal()">✕ Close Reader</button>
           <h1 style="font-family:var(--font-display); font-size: 1.6rem; font-weight: 600; line-height: 1.25; margin-bottom: 8px;">${title}</h1>
-          <div style="font-size: 0.8rem; color:var(--text-muted);">Published by ${author} on ${fmtDateTime(date)}</div>
+          <div style="font-size: 0.8rem; color:var(--text-muted);">
+            Published by <strong>${author}</strong> on ${fmtDateTime(date)}
+            ${schoolName ? `<br><span style="color:#60a5fa; font-weight: 500;">School: ${schoolName}</span>` : ""}
+            ${inchargeName ? ` • <span style="color:var(--text-muted);">Space Lab Educator: ${inchargeName}</span>` : ""}
+          </div>
           <div style="margin-top: 14px; display: flex; gap: 12px;">
             <a href="${content}" target="_blank" class="btn" style="border-radius: 8px; background: white; color: black; border-color:white; text-decoration:none; padding: 6px 16px; font-size:0.8rem; font-weight:600;">Open PDF in New Tab ↗</a>
           </div>
