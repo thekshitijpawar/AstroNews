@@ -25,9 +25,9 @@ const NEWS_FEEDS = [
   { url: "https://www.space.com/science/astrophysics", source: "Space.com Astrophysics", isHtml: true },
   { url: "https://www.space.com/science/particle-physics", source: "Space.com Particle Physics", isHtml: true },
   { url: "https://www.astronomy.com/feed/", source: "Astronomy.com" },
-  { url: "https://aas.org/news/feed", source: "AAS" },
+  { url: "https://aasnova.org/feed/", source: "AAS" },
   { url: "https://news.mit.edu/rss/topic/astrophysics", source: "MIT News" },
-  { url: "https://skyandtelescope.org/astronomy-news/feed", source: "Sky & Telescope" },
+  { url: "https://api.rss2json.com/v1/api.json?rss_url=https://skyandtelescope.org/astronomy-news/feed", source: "Sky & Telescope", isJson: true },
   { url: "https://spacedaily.com/category/news/feed", source: "Space Daily" }
 ];
 
@@ -40,7 +40,8 @@ const SEASKY_2026_URL = "https://www.seasky.org/astronomy/astronomy-calendar-202
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: "@_",
-  trimValues: true
+  trimValues: true,
+  processEntities: false
 });
 
 function toArray(v) {
@@ -330,6 +331,28 @@ function normalizeRssOrAtom(xml, sourceName) {
   return items;
 }
 
+function normalizeRssJson(jsonStr, sourceName) {
+  const items = [];
+  try {
+    const data = JSON.parse(jsonStr);
+    if (!data || !Array.isArray(data.items)) return [];
+    for (const it of data.items) {
+      const descriptionHtml = it.description || "";
+      items.push({
+        title: cleanText(it.title || "Untitled"),
+        url: it.link || "",
+        publishedAt: it.pubDate || "",
+        source: sourceName,
+        summary: cleanText(descriptionHtml),
+        imageUrl: it.thumbnail || extractImageFromHtml(descriptionHtml) || ""
+      });
+    }
+  } catch (err) {
+    console.error(`Error parsing RSS JSON for ${sourceName}:`, err.message);
+  }
+  return items;
+}
+
 function inferWhereFromNote(note = "") {
   const n = note.toLowerCase();
 
@@ -446,6 +469,8 @@ app.get("/api/news", async (_req, res) => {
         let parsed = [];
         if (feed.isHtml) {
           parsed = parseSpaceComHtml(content, feed.source);
+        } else if (feed.isJson) {
+          parsed = normalizeRssJson(content, feed.source);
         } else {
           parsed = normalizeRssOrAtom(content, feed.source);
         }
