@@ -28,7 +28,11 @@ const NEWS_FEEDS = [
   { url: "https://aasnova.org/feed/", source: "AAS" },
   { url: "https://news.mit.edu/rss/topic/astrophysics", source: "MIT News" },
   { url: "https://api.rss2json.com/v1/api.json?rss_url=https://skyandtelescope.org/astronomy-news/feed", source: "Sky & Telescope", isJson: true },
-  { url: "https://spacedaily.com/category/news/feed", source: "Space Daily" }
+  { url: "https://spacedaily.com/category/news/feed", source: "Space Daily" },
+  { url: "https://www.esa.int/rssfeed/news", source: "ESA" },
+  { url: "https://news.google.com/rss/search?q=ISRO+space&hl=en-IN&gl=IN&ceid=IN:en", source: "ISRO" },
+  { url: "https://www.asc-csa.gc.ca/rss/eng/news.xml", source: "CSA" },
+  { url: "https://www.jaxa.jp/rss/press_e.rdf", source: "JAXA" }
 ];
 
 // Real upcoming launches
@@ -95,6 +99,21 @@ async function fetchText(url) {
   const r = await fetchWithTimeout(url);
   if (!r.ok) throw new Error(`Fetch failed ${r.status} for ${url}`);
   return r.text();
+}
+
+const { exec } = require("child_process");
+
+function fetchWithCurl(url) {
+  return new Promise((resolve, reject) => {
+    const cmd = `curl.exe -s -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" "${url}"`;
+    exec(cmd, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
 }
 
 const imageCache = new Map();
@@ -323,6 +342,24 @@ function normalizeRssOrAtom(xml, sourceName) {
         source: sourceName,
         summary: cleanText(summaryRaw),
         imageUrl: imageUrl || ""
+      });
+    }
+    return items;
+  }
+
+  // RDF / RSS 1.0 (like JAXA)
+  const rdfRoot = j?.["rdf:RDF"] || j?.RDF;
+  const rdfItems = rdfRoot?.item;
+  if (rdfItems) {
+    for (const it of toArray(rdfItems)) {
+      const descriptionHtml = it.description || "";
+      items.push({
+        title: cleanText(it.title || "Untitled"),
+        url: it.link || "",
+        publishedAt: it.pubDate || it.published || it["dc:date"] || "",
+        source: sourceName,
+        summary: cleanText(descriptionHtml),
+        imageUrl: getBestImageUrl(it, descriptionHtml)
       });
     }
     return items;
@@ -571,26 +608,214 @@ app.get("/api/launches", async (_req, res) => {
   }
 });
 
+function getIndianSpaceEvents() {
+  const events = [];
+  const years = [2026, 2027];
+  
+  for (const yr of years) {
+    events.push(
+      {
+        name: "National Moon Day",
+        date: `${yr}-07-20T00:00:00Z`,
+        where: "India & Worldwide",
+        note: "Celebrated in India and globally to mark the historic Apollo 11 moon landing in 1969. In India, local planetariums, schools, and science centers host lunar-themed quizzes, sky-watching sessions, and lectures."
+      },
+      {
+        name: "Vikram Sarabhai Birth Anniversary",
+        date: `${yr}-08-12T00:00:00Z`,
+        where: "India",
+        note: "Commemorates the father of the Indian Space Program with national scale model-rocketry competitions and space science lectures."
+      },
+      {
+        name: "India Space Week",
+        date: `${yr}-08-12T00:00:00Z`, // Starts on Aug 12
+        where: "India",
+        note: "Organized by the India Space Week Association (ISWA), this week bridges the birth anniversary of Dr. Vikram Sarabhai (August 12) with National Space Day preparations."
+      },
+      {
+        name: "ISRO Foundation Day",
+        date: `${yr}-08-15T00:00:00Z`,
+        where: "India",
+        note: "Marking the establishment of the Indian Space Research Organisation (ISRO) on August 15, 1969."
+      },
+      {
+        name: "National Space Day",
+        date: `${yr}-08-23T00:00:00Z`,
+        where: "India",
+        note: "India's premier official space day, established to commemorate the successful soft landing of Chandrayaan-3 on the lunar south pole."
+      },
+      {
+        name: "Satish Dhawan Birth Anniversary",
+        date: `${yr}-09-25T00:00:00Z`,
+        where: "India",
+        note: "Honoring the legendary aerospace engineer and former ISRO Chairman Vikram Sarabhai's successor."
+      },
+      {
+        name: "World Space Week",
+        date: `${yr}-10-04T00:00:00Z`, // Starts Oct 4
+        where: "India & Worldwide",
+        note: "Celebrated extensively across India by ISRO centers. It marks the launch of Sputnik 1 (October 4, 1957) and the signing of the Outer Space Treaty (October 10, 1967)."
+      },
+      {
+        name: "National Science Day",
+        date: `${yr}-02-28T00:00:00Z`,
+        where: "India",
+        note: "While honoring Sir C.V. Raman's discovery of the Raman Effect, ISRO and IN-SPACe use this day to run major public space exhibitions and open-house events."
+      },
+      {
+        name: "Rakesh Sharma Spaceflight Anniversary",
+        date: `${yr}-04-03T00:00:00Z`,
+        where: "India",
+        note: "Celebrating Wing Commander Rakesh Sharma becoming the first Indian in space, launched aboard Soyuz T-11 in 1984."
+      },
+      {
+        name: "Aryabhata Launch Anniversary",
+        date: `${yr}-04-19T00:00:00Z`,
+        where: "India",
+        note: "Marks the launch of India's very first satellite in 1975, celebrated as a foundational day for Indian satellite technology."
+      }
+    );
+  }
+  return events;
+}
+
 app.get("/api/events", async (_req, res) => {
   try {
     const html = await fetchText(SEASKY_2026_URL);
-    const allEvents = parseSeaSky2026(html);
+    const seaSkyEvents = parseSeaSky2026(html);
+    const indianEvents = getIndianSpaceEvents();
+    
+    const allEvents = [...seaSkyEvents, ...indianEvents];
+    
+    // Sort all events chronologically so the closest event is first!
+    allEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const now = new Date();
+    // Use start of today to ensure today's events (like National Moon Day on July 20) are captured
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
     const upcoming = allEvents
-      .filter((e) => new Date(e.date) >= now)
-      .slice(0, 30);
+      .filter((e) => new Date(e.date) >= startOfToday)
+      .slice(0, 40);
 
     res.json({
       ok: true,
-      source: "SeaSky 2026",
-      sourceUrl: SEASKY_2026_URL,
+      source: "SeaSky & Indian Space Calendar",
       count: upcoming.length,
       items: upcoming
     });
   } catch (e) {
     console.error("SeaSky events error:", e.message);
     res.json({ ok: false, count: 0, items: [], error: e.message });
+  }
+});
+
+app.get("/api/moon", async (_req, res) => {
+  try {
+    const html = await fetchWithCurl("https://theskylive.com/moon-today");
+    
+    // Parse phase name
+    let phase = "";
+    const phaseMatch = html.match(/Phase:&nbsp;<number>([^<]+)<\/number>/i) || html.match(/<meta property="og:title" content="Moon Phase Today: ([^"]+)"/i);
+    if (phaseMatch) {
+      phase = phaseMatch[1].trim();
+    }
+    
+    // Parse illumination
+    let illumination = "";
+    const illumMatch = html.match(/Illuminated:&nbsp;<number>([^<]+)<\/number>/i);
+    if (illumMatch) {
+      illumination = illumMatch[1].trim();
+    }
+    
+    // Parse image
+    let imageUrl = "";
+    const imgMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
+    if (imgMatch) {
+      imageUrl = imgMatch[1].trim();
+    }
+    
+    if (!phase) throw new Error("Could not parse moon phase from HTML");
+
+    res.json({
+      ok: true,
+      phase,
+      illumination,
+      imageUrl,
+      source: "TheSkyLive"
+    });
+  } catch (err) {
+    console.error("TheSkyLive Moon parse error:", err.message);
+    
+    // Mathematical Fallback
+    const now = new Date();
+    const baseNewMoon = new Date("2000-01-06T18:14:00Z").getTime();
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const synodicMonth = 29.530588853;
+    const diffDays = (now.getTime() - baseNewMoon) / msPerDay;
+    const phaseValue = (diffDays / synodicMonth) % 1.0;
+    const age = phaseValue * synodicMonth;
+    const calcIllum = Math.round((1 - Math.cos(2 * Math.PI * phaseValue)) / 2 * 100);
+    
+    let calcPhase = "";
+    let fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon22.jpg";
+    if (age < 1.845) { calcPhase = "New Moon"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon0.jpg"; }
+    else if (age < 5.537) { calcPhase = "Waxing Crescent"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon5.jpg"; }
+    else if (age < 9.228) { calcPhase = "First Quarter"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon7.jpg"; }
+    else if (age < 12.92) { calcPhase = "Waxing Gibbous"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon11.jpg"; }
+    else if (age < 16.61) { calcPhase = "Full Moon"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon15.jpg"; }
+    else if (age < 20.30) { calcPhase = "Waning Gibbous"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon18.jpg"; }
+    else if (age < 23.99) { calcPhase = "Third Quarter"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon22.jpg"; }
+    else if (age < 27.68) { calcPhase = "Waning Crescent"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon26.jpg"; }
+    else { calcPhase = "New Moon"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon0.jpg"; }
+
+    res.json({
+      ok: true,
+      phase: calcPhase,
+      illumination: `${calcIllum}%`,
+      imageUrl: fallbackImg,
+      stale: true,
+      error: err.message
+    });
+  }
+});
+
+app.get("/api/neos", async (_req, res) => {
+  try {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    
+    const url = `https://api.nasa.gov/neo/rest/v1/feed?start_date=${todayStr}&end_date=${todayStr}&api_key=kbFweXputZzY0oBIm4ZQlJRLQxlVn5ZOCQtO1EPN`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`NASA API failed: ${r.status}`);
+    const j = await r.json();
+    
+    const neosToday = j.near_earth_objects?.[todayStr] || [];
+    
+    const parsed = neosToday.map(neo => {
+      const closeApproach = neo.close_approach_data?.[0];
+      const missDist = closeApproach?.miss_distance?.kilometers || "Unknown";
+      const missDistKm = parseFloat(missDist);
+      const diameterMin = neo.estimated_diameter?.meters?.estimated_diameter_min || 0;
+      const diameterMax = neo.estimated_diameter?.meters?.estimated_diameter_max || 0;
+      return {
+        id: neo.id,
+        name: neo.name,
+        diameter: `${Math.round(diameterMin)}-${Math.round(diameterMax)}m`,
+        missDistance: isNaN(missDistKm) ? "Unknown" : `${(missDistKm / 1000).toLocaleString(undefined, {maximumFractionDigits:0})}k km`,
+        missDistanceValue: isNaN(missDistKm) ? Infinity : missDistKm,
+        isHazardous: neo.is_potentially_hazardous_asteroid || false,
+        velocity: Math.round(parseFloat(closeApproach?.relative_velocity?.kilometers_per_hour || "0"))
+      };
+    });
+    
+    parsed.sort((a, b) => a.missDistanceValue - b.missDistanceValue);
+    
+    res.json({ ok: true, items: parsed.slice(0, 3) });
+  } catch (err) {
+    console.error("NASA NEO API error:", err.message);
+    res.json({ ok: false, items: [], error: err.message });
   }
 });
 

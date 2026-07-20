@@ -70,7 +70,7 @@
       z-index: 1;
       height: 100vh;
       display: grid;
-      grid-template-rows: 64px 1fr 1px 180px 32px;
+      grid-template-rows: 64px 1fr 1px 200px 32px;
       padding: 0 40px;
     }
     
@@ -343,7 +343,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 30px;
-      padding: 24px 0;
+      padding: 10px 0;
       min-height: 0;
     }
     .bottom-col {
@@ -351,12 +351,52 @@
       flex-direction: column;
       gap: 8px;
       min-width: 0;
+      position: relative;
     }
     .col-header {
       font-size: 0.68rem;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 1px;
+    }
+    .icon-container {
+      position: absolute;
+      right: 4px;
+      top: 6px;
+      width: 32px;
+      height: 32px;
+      color: #60a5fa;
+      opacity: 0.18;
+      transition: opacity 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+    .bottom-col:hover .icon-container {
+      opacity: 0.55;
+      color: #93c5fd;
+      transform: scale(1.08);
+    }
+    .countdown-digits {
+      font-family: monospace;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    @keyframes rocketLaunch {
+      0% { transform: translate(0, 0); }
+      50% { transform: translate(3px, -3px); }
+      100% { transform: translate(0, 0); }
+    }
+    .rocket-anim {
+      animation: rocketLaunch 4s ease-in-out infinite;
+    }
+
+    @keyframes skyTwinkle {
+      0%, 100% { opacity: 0.18; transform: scale(1); }
+      50% { opacity: 0.50; transform: scale(1.08) rotate(5deg); }
+    }
+    .sky-anim {
+      animation: skyTwinkle 5s ease-in-out infinite;
     }
     .col-title {
       font-family: var(--font-display);
@@ -992,8 +1032,11 @@
 
   let launchesList = [];
   let eventsList = [];
-  let bottomIndex = 0;
-  let bottomTimer = null;
+  let nextLaunchData = null;
+  let nextEventData = null;
+  let countdownTimer = null;
+  let nextMoonData = null;
+  let neosData = [];
 
   function fmtDateTime(v){
     const d = new Date(v);
@@ -1163,74 +1206,419 @@
     }
   }
 
-  function rotateBottomRow() {
-    if (!launchesList.length && !eventsList.length) return;
+  function getRocketImage(launch) {
+    if (!launch) return "https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=150&q=80";
+    const name = (launch.name || "").toLowerCase();
+    const provider = (launch.launch_service_provider?.name || "").toLowerCase();
+    if (name.includes("falcon") || provider.includes("spacex")) {
+      return "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=150&q=80"; // Falcon 9 launch
+    }
+    if (provider.includes("isro") || name.includes("pslv") || name.includes("gslv") || name.includes("sslv") || name.includes("lvm")) {
+      return "https://images.unsplash.com/photo-1610296669228-602fa827fc1f?auto=format&fit=crop&w=150&q=80"; // Launch rocket
+    }
+    if (name.includes("artemis") || provider.includes("nasa")) {
+      return "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=150&q=80"; // Artemis / Shuttle launch
+    }
+    return "https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=150&q=80"; // Generic Launch
+  }
+
+  function getCelestialImage(event) {
+    if (!event) return "https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&w=150&q=80";
+    const name = (event.name || "").toLowerCase();
+    const note = (event.note || "").toLowerCase();
+    const where = (event.where || "").toLowerCase();
     
+    if (name.includes("moon") || note.includes("moon") || name.includes("lunar") || name.includes("apollo")) {
+      return "https://images.unsplash.com/photo-1522030299830-16b8d3d049fe?auto=format&fit=crop&w=150&q=80"; // Moon photo
+    }
+    if (name.includes("meteor") || note.includes("meteor") || name.includes("shower") || name.includes("geminids") || name.includes("perseids")) {
+      return "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?auto=format&fit=crop&w=150&q=80"; // Meteor shower
+    }
+    if (where.includes("india") || name.includes("sarabhai") || name.includes("isro") || name.includes("science day")) {
+      return "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=150&q=80"; // India space tech/satellite globe
+    }
+    if (name.includes("opposition") || name.includes("conjunction") || name.includes("eclipse") || name.includes("planet") || name.includes("saturn") || name.includes("jupiter")) {
+      return "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=150&q=80"; // Planet/Earth from space
+    }
+    return "https://images.unsplash.com/photo-1538370965046-79c0d6907d47?auto=format&fit=crop&w=150&q=80"; // Deep space Carina nebula
+  }
+
+  function getMoonPhaseAndIllumination(date = new Date()) {
+    const baseNewMoon = new Date("2000-01-06T18:14:00Z").getTime();
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const synodicMonth = 29.530588853;
+    
+    const diffDays = (date.getTime() - baseNewMoon) / msPerDay;
+    const phaseValue = (diffDays / synodicMonth) % 1.0;
+    const age = phaseValue * synodicMonth;
+    const illumination = Math.round((1 - Math.cos(2 * Math.PI * phaseValue)) / 2 * 100);
+    
+    let name = "";
+    let emoji = "🌑";
+    if (age < 1.845) { name = "New Moon"; emoji = "🌑"; }
+    else if (age < 5.537) { name = "Waxing Crescent"; emoji = "🌒"; }
+    else if (age < 9.228) { name = "First Quarter"; emoji = "🌓"; }
+    else if (age < 12.92) { name = "Waxing Gibbous"; emoji = "🌔"; }
+    else if (age < 16.61) { name = "Full Moon"; emoji = "🌕"; }
+    else if (age < 20.30) { name = "Waning Gibbous"; emoji = "🌖"; }
+    else if (age < 23.99) { name = "Third Quarter"; emoji = "🌗"; }
+    else if (age < 27.68) { name = "Waning Crescent"; emoji = "🌘"; }
+    else { name = "New Moon"; emoji = "🌑"; }
+    
+    return { name, illumination, emoji };
+  }
+
+  function getSunTimings(date = new Date()) {
+    const start = new Date(date.getFullYear(), 0, 0);
+    const diff = date - start;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    const angle = (2 * Math.PI * (dayOfYear - 172)) / 365;
+    
+    const riseOffsetMinutes = Math.sin(angle) * 57.5;
+    const riseMinutes = 377.5 + riseOffsetMinutes;
+    
+    const setOffsetMinutes = Math.sin(angle) * 52.5;
+    const setMinutes = 1102.5 - setOffsetMinutes;
+    
+    const formatTime = (totalMinutes) => {
+      const h = Math.floor(totalMinutes / 60);
+      const m = Math.floor(totalMinutes % 60);
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    };
+    
+    return {
+      sunrise: formatTime(riseMinutes),
+      sunset: formatTime(setMinutes)
+    };
+  }
+
+  function getMoonTimings(date = new Date()) {
+    const baseNewMoon = new Date("2000-01-06T18:14:00Z").getTime();
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const synodicMonth = 29.530588853;
+    
+    const diffDays = (date.getTime() - baseNewMoon) / msPerDay;
+    const phaseValue = (diffDays / synodicMonth) % 1.0;
+    
+    const riseMinutes = (6 * 60 + phaseValue * 24 * 60) % (24 * 60);
+    const setMinutes = (riseMinutes + 12 * 60) % (24 * 60);
+    
+    const formatTime = (totalMinutes) => {
+      const h = Math.floor(totalMinutes / 60);
+      const m = Math.floor(totalMinutes % 60);
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    };
+    
+    return {
+      moonrise: formatTime(riseMinutes),
+      moonset: formatTime(setMinutes)
+    };
+  }
+
+  function getPlanetsTonight(date = new Date()) {
+    const month = date.getMonth();
+    const visibilityData = [
+      // Jan
+      [
+        { name: "Jupiter", visibility: "Excellent", time: "Sunset to 11:30 PM", color: "#f59e0b" },
+        { name: "Venus", visibility: "Good", time: "Dusk (West)", color: "#34d399" },
+        { name: "Saturn", visibility: "Fair", time: "Early Evening", color: "#60a5fa" }
+      ],
+      // Feb
+      [
+        { name: "Jupiter", visibility: "Excellent", time: "Sunset to 10:00 PM", color: "#f59e0b" },
+        { name: "Venus", visibility: "Excellent", time: "Dusk (West)", color: "#34d399" },
+        { name: "Mars", visibility: "Fair", time: "Pre-Dawn", color: "#f87171" }
+      ],
+      // Mar
+      [
+        { name: "Venus", visibility: "Excellent", time: "Dusk (West)", color: "#34d399" },
+        { name: "Jupiter", visibility: "Good", time: "Sunset to 08:30 PM", color: "#f59e0b" },
+        { name: "Mars", visibility: "Good", time: "Pre-Dawn", color: "#f87171" }
+      ],
+      // Apr
+      [
+        { name: "Venus", visibility: "Excellent", time: "Evening (West)", color: "#34d399" },
+        { name: "Mars", visibility: "Good", time: "Late Night to Dawn", color: "#f87171" },
+        { name: "Saturn", visibility: "Good", time: "Pre-Dawn (East)", color: "#60a5fa" }
+      ],
+      // May
+      [
+        { name: "Mars", visibility: "Good", time: "02:00 AM to Dawn", color: "#f87171" },
+        { name: "Saturn", visibility: "Excellent", time: "01:30 AM to Dawn", color: "#60a5fa" },
+        { name: "Jupiter", visibility: "Fair", time: "Pre-Dawn", color: "#f59e0b" }
+      ],
+      // Jun
+      [
+        { name: "Saturn", visibility: "Excellent", time: "Midnight to Dawn", color: "#60a5fa" },
+        { name: "Mars", visibility: "Excellent", time: "01:00 AM to Dawn", color: "#f87171" },
+        { name: "Jupiter", visibility: "Good", time: "03:00 AM to Dawn", color: "#f59e0b" }
+      ],
+      // Jul
+      [
+        { name: "Saturn", visibility: "Excellent", time: "10:30 PM to Dawn", color: "#60a5fa" },
+        { name: "Mars", visibility: "Excellent", time: "Midnight to Dawn", color: "#f87171" },
+        { name: "Jupiter", visibility: "Excellent", time: "02:00 AM to Dawn", color: "#f59e0b" }
+      ],
+      // Aug
+      [
+        { name: "Saturn", visibility: "Excellent", time: "09:00 PM to Dawn", color: "#60a5fa" },
+        { name: "Mars", visibility: "Excellent", time: "11:30 PM to Dawn", color: "#f87171" },
+        { name: "Jupiter", visibility: "Excellent", time: "Midnight to Dawn", color: "#f59e0b" }
+      ],
+      // Sep
+      [
+        { name: "Saturn", visibility: "Excellent", time: "Sunset to Dawn", color: "#60a5fa" },
+        { name: "Mars", visibility: "Excellent", time: "10:30 PM to Dawn", color: "#f87171" },
+        { name: "Jupiter", visibility: "Excellent", time: "10:00 PM to Dawn", color: "#f59e0b" }
+      ],
+      // Oct
+      [
+        { name: "Jupiter", visibility: "Excellent", time: "08:30 PM to Dawn", color: "#f59e0b" },
+        { name: "Mars", visibility: "Excellent", time: "09:30 PM to Dawn", color: "#f87171" },
+        { name: "Saturn", visibility: "Excellent", time: "Sunset to 02:00 AM", color: "#60a5fa" }
+      ],
+      // Nov
+      [
+        { name: "Jupiter", visibility: "Excellent", time: "07:00 PM to Dawn", color: "#f59e0b" },
+        { name: "Mars", visibility: "Excellent", time: "08:30 PM to Dawn", color: "#f87171" },
+        { name: "Venus", visibility: "Good", time: "Dusk (West)", color: "#34d399" }
+      ],
+      // Dec
+      [
+        { name: "Jupiter", visibility: "Excellent", time: "Sunset to Dawn", color: "#f59e0b" },
+        { name: "Mars", visibility: "Excellent", time: "Sunset to Dawn", color: "#f87171" },
+        { name: "Venus", visibility: "Excellent", time: "Dusk (West)", color: "#34d399" }
+      ]
+    ];
+    return visibilityData[month] || visibilityData[6];
+  }
+
+  function getLaunchSummary(launch) {
+    if (!launch) return "";
+    const desc = launch.mission?.description || "";
+    if (!desc) {
+      return "Payload and mission specifics have not yet been disclosed.";
+    }
+    const firstSentence = desc.split(/[.!?]/)[0] + ".";
+    if (firstSentence.length > 90) {
+      return firstSentence.slice(0, 87) + "...";
+    }
+    return firstSentence;
+  }
+
+  function getEventSummary(event) {
+    if (!event) return "";
+    const note = stripHtml(event.note || "");
+    if (!note) return "";
+    const firstSentence = note.split(/[.!?]/)[0] + ".";
+    if (firstSentence.length > 90) {
+      return firstSentence.slice(0, 87) + "...";
+    }
+    return firstSentence;
+  }
+
+  function renderStaticBottomRow() {
     const col1 = $("col1");
     const col2 = $("col2");
     const col3 = $("col3");
     const col4 = $("col4");
     if (!col1 || !col2 || !col3 || !col4) return;
 
-    // Cycle launches index
-    const l1Idx = bottomIndex % launchesList.length;
-    const l2Idx = (bottomIndex + 1) % launchesList.length;
-
-    // Cycle events index
-    const e1Idx = bottomIndex % eventsList.length;
-    const e2Idx = (bottomIndex + 1) % eventsList.length;
-
-    // Launch 1
-    const l1 = launchesList[l1Idx];
-    if (l1) {
+    // Next Launch Details (Col 1)
+    if (nextLaunchData) {
+      const launchImg = getRocketImage(nextLaunchData);
+      col1.innerHTML = `
+        <div class="col-header">Launch Tracking • Next Up</div>
+        <div style="display: flex; gap: 12px; margin-top: 8px; align-items: flex-start; flex: 1;">
+          <img src="${launchImg}" alt="rocket launch" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 0 10px rgba(0,0,0,0.5); flex-shrink: 0;" />
+          <div style="flex: 1; min-width: 0;">
+            <div class="col-title" style="margin-bottom: 2px;">${nextLaunchData.name}</div>
+            <div class="col-desc" style="-webkit-line-clamp: 2; line-height: 1.35;">
+              <span style="color: var(--text-muted); font-size: 0.72rem;">
+                ${nextLaunchData.launch_service_provider?.name || "Unknown"} • ${nextLaunchData.pad?.location?.name?.split(",")?.[0] || "Unknown"}
+              </span><br>
+              <span style="color: var(--text);">${getLaunchSummary(nextLaunchData)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="countdown-wrapper" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px;">
+          <span style="font-size: 0.60rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">T-Minus Countdown</span>
+          <div id="launchCountdown" class="countdown-digits" style="color: #60a5fa; text-shadow: 0 0 10px rgba(96,165,250,0.3); font-size: 1.05rem;">--d : --h : --m : --s</div>
+        </div>
+        <div class="icon-container rocket-anim" style="top: 4px; right: 4px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:100%; height:100%;">
+            <path d="M4.5 16.5c-1.5 1.25-2.5 3.5-2.5 3.5s2.25-1 3.5-2.5M19.5 7.5c1.5-1.25 2.5-3.5 2.5-3.5s-2.25 1-3.5 2.5" />
+            <path d="M12 12c2.28-2.28 3.56-5.83 4.5-8.5-2.67.94-6.22 2.22-8.5 4.5a3 3 0 0 0 0 4.24 3 3 0 0 0 4.24 0Z" />
+            <path d="M9 15c-1 1-2.5 1.5-3.5 1.5.5-1 1-2.5 1.5-3.5M15 9c1-1 2.5-1.5 3.5-1.5-.5 1-1 2.5-1.5 3.5" />
+            <path d="M9 15a4 4 0 0 0 5.5 0" />
+          </svg>
+        </div>
+      `;
+    } else {
       col1.innerHTML = `
         <div class="col-header">Launch Tracking</div>
-        <div class="col-title">${l1.name}</div>
-        <div class="col-desc">${l1.launch_service_provider?.name || "Unknown"} • ${l1.pad?.location?.name || "Unknown"}<br>NET: ${fmtDateTime(l1.net)}</div>
+        <div class="col-title">No upcoming launches</div>
       `;
-    } else {
-      col1.innerHTML = `<div class="col-header">Launch Tracking</div><div class="col-title">No upcoming launches</div>`;
     }
 
-    // Launch 2
-    const l2 = launchesList[l2Idx];
-    if (l2) {
+    // Next Celestial Event Details (Col 2)
+    if (nextEventData) {
       col2.innerHTML = `
-        <div class="col-header">Launch Tracking</div>
-        <div class="col-title">${l2.name}</div>
-        <div class="col-desc">${l2.launch_service_provider?.name || "Unknown"} • ${l2.pad?.location?.name || "Unknown"}<br>NET: ${fmtDateTime(l2.net)}</div>
+        <div class="col-header">Sky Watch • Next Up</div>
+        <div style="display: flex; gap: 12px; margin-top: 8px; align-items: flex-start; flex: 1;">
+          <img src="${getCelestialImage(nextEventData)}" alt="celestial event" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 0 10px rgba(0,0,0,0.5); flex-shrink: 0;" />
+          <div style="flex: 1; min-width: 0;">
+            <div class="col-title" style="margin-bottom: 2px;">${nextEventData.name}</div>
+            <div class="col-desc" style="-webkit-line-clamp: 2; line-height: 1.35;">
+              <span style="color: var(--text-muted); font-size: 0.72rem;">
+                ${nextEventData.where || "Global"} • ${fmtDate(nextEventData.date)}
+              </span><br>
+              <span style="color: var(--text);">${getEventSummary(nextEventData)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="countdown-wrapper" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px;">
+          <span style="font-size: 0.60rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Time Until Event</span>
+          <div id="eventCountdown" class="countdown-digits" style="color: #34d399; text-shadow: 0 0 10px rgba(52,211,153,0.3); font-size: 1.05rem;">--d : --h : --m : --s</div>
+        </div>
+        <div class="icon-container sky-anim" style="top: 4px; right: 4px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:100%; height:100%;">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+            <path d="M19 3v4M21 5h-4M15 20v2M16 21h-2M8 17v2M9 18H7" />
+          </svg>
+        </div>
       `;
     } else {
-      col2.innerHTML = `<div class="col-header">Launch Tracking</div><div class="col-title">No upcoming launches</div>`;
-    }
-
-    // Event 1
-    const e1 = eventsList[e1Idx];
-    if (e1) {
-      col3.innerHTML = `
+      col2.innerHTML = `
         <div class="col-header">Sky Watch</div>
-        <div class="col-title">${e1.name}</div>
-        <div class="col-desc">${e1.where || "Global"} • ${fmtDate(e1.date)}<br>${stripHtml(e1.note || "").slice(0, 100)}</div>
+        <div class="col-title">No upcoming events</div>
       `;
-    } else {
-      col3.innerHTML = `<div class="col-header">Sky Watch</div><div class="col-title">No upcoming events</div>`;
     }
 
-    // Event 2
-    const e2 = eventsList[e2Idx];
-    if (e2) {
-      col4.innerHTML = `
-        <div class="col-header">Sky Watch</div>
-        <div class="col-title">${e2.name}</div>
-        <div class="col-desc">${e2.where || "Global"} • ${fmtDate(e2.date)}<br>${stripHtml(e2.note || "").slice(0, 100)}</div>
-      `;
+    // Sun & Moon Portal (Col 3)
+    const now = new Date();
+    const sunInfo = getSunTimings(now);
+    const moonTimes = getMoonTimings(now);
+
+    let moonName = "Calculating...";
+    let moonIllum = "--%";
+    let moonImg = "https://static.theskylive.com/website/images/moon/500jpg/moon22.jpg";
+    
+    if (nextMoonData) {
+      moonName = nextMoonData.phase;
+      moonIllum = nextMoonData.illumination;
+      moonImg = nextMoonData.imageUrl || moonImg;
     } else {
-      col4.innerHTML = `<div class="col-header">Sky Watch</div><div class="col-title">No upcoming events</div>`;
+      const localMoon = getMoonPhaseAndIllumination(now);
+      moonName = localMoon.name;
+      moonIllum = localMoon.illumination + "%";
     }
 
-    // Advance index by 2
-    const maxLen = Math.max(launchesList.length, eventsList.length);
-    bottomIndex = (bottomIndex + 2) % (maxLen || 2);
+    col3.innerHTML = `
+      <div class="col-header">Sun & Moon Portal</div>
+      <div style="display: flex; gap: 12px; margin-top: 8px; align-items: center; flex: 1;">
+        <img src="${moonImg}" alt="moon phase" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); box-shadow: 0 0 10px rgba(255,255,255,0.15); flex-shrink: 0; object-fit: cover;" />
+        <div style="flex: 1; min-width: 0;">
+          <div class="col-title" style="margin-bottom: 2px;">${moonName}</div>
+          <div class="col-desc">${moonIllum} Illuminated</div>
+        </div>
+      </div>
+      <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 6px;">
+        <div>
+          <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">☀️ Sunrise / Sunset</div>
+          <div style="font-family: monospace; font-size: 0.78rem; font-weight: 600; color: var(--text);">${sunInfo.sunrise} / ${sunInfo.sunset}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">🌙 Moonrise / Moonset</div>
+          <div style="font-family: monospace; font-size: 0.78rem; font-weight: 600; color: var(--text);">${moonTimes.moonrise} / ${moonTimes.moonset}</div>
+        </div>
+      </div>
+    `;
+
+    // Planets Tonight & NEOs (Col 4)
+    const planetImages = {
+      mercury: "https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?auto=format&fit=crop&w=50&q=80",
+      venus: "https://images.unsplash.com/photo-1614314107768-6018061b5b7d?auto=format&fit=crop&w=50&q=80",
+      mars: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=50&q=80",
+      jupiter: "https://images.unsplash.com/photo-1614314169000-4cf229a1db33?auto=format&fit=crop&w=50&q=80",
+      saturn: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?auto=format&fit=crop&w=50&q=80",
+      uranus: "https://images.unsplash.com/photo-1614730290745-16eb9ec4956d?auto=format&fit=crop&w=50&q=80",
+      neptune: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=50&q=80"
+    };
+
+    const planets = getPlanetsTonight(now).slice(0, 2);
+    const planetsHtml = planets.map(p => {
+      const pImg = planetImages[p.name.toLowerCase()] || planetImages.jupiter;
+      return `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 1px 0;">
+          <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+            <img src="${pImg}" alt="${p.name}" style="width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border); box-shadow: 0 0 5px ${p.color}; flex-shrink: 0; object-fit: cover;" />
+            <span class="col-title" style="font-size: 0.76rem; margin: 0;">${p.name}</span>
+          </div>
+          <div style="text-align: right; flex-shrink: 0;">
+            <div style="font-size: 0.7rem; font-weight: 600; color: var(--text);">${p.time}</div>
+            <div style="font-size: 0.5rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Quality: <span style="color: ${p.visibility === 'Excellent' ? '#34d399' : (p.visibility === 'Good' ? '#60a5fa' : '#a1a1aa')}; font-weight: 700;">${p.visibility}</span></div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    const neosHtml = (neosData && neosData.length) ? neosData.slice(0, 2).map(n => `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 1px 0;">
+        <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+          <svg style="width:12px; height:12px; fill:${n.isHazardous ? '#ef4444' : '#60a5fa'}; flex-shrink: 0; filter: drop-shadow(0 0 3px ${n.isHazardous ? '#ef4444' : 'transparent'})" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 4l7.53 13H4.47L12 6zm-1 2v4h2V8h-2zm0 6v2h2v-2h-2z"/></svg>
+          <span class="col-title" style="font-size: 0.76rem; margin: 0; color: ${n.isHazardous ? '#f87171' : 'var(--text)'}; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${n.name.replace(/\(|\)/g, '')}</span>
+        </div>
+        <div style="text-align: right; flex-shrink: 0;">
+          <div style="font-size: 0.7rem; font-weight: 600; color: var(--text);">${n.missDistance}</div>
+          <div style="font-size: 0.5rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Size: <span style="font-weight: 600;">${n.diameter}</span></div>
+        </div>
+      </div>
+    `).join("") : `<div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; padding: 4px 0;">No flybys detected today</div>`;
+
+    col4.innerHTML = `
+      <div class="col-header">Planets Tonight • N. Hemisphere</div>
+      <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+        ${planetsHtml}
+      </div>
+      <div class="col-header" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between;">
+        <span>Near Earth Objects (NEOs)</span>
+        <span style="font-size: 0.55rem; color: #60a5fa; font-weight: 700;">NASA Live</span>
+      </div>
+      <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+        ${neosHtml}
+      </div>
+    `;
+  }
+
+  function formatCountdown(targetDateStr) {
+    if (!targetDateStr) return "--d : --h : --m : --s";
+    const target = new Date(targetDateStr).getTime();
+    const now = new Date().getTime();
+    const diff = target - now;
+    if (diff <= 0) {
+      return "00d : 00h : 00m : 00s";
+    }
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    const pad = (num) => String(num).padStart(2, '0');
+    return `${pad(days)}d : ${pad(hours)}h : ${pad(minutes)}m : ${pad(seconds)}s`;
+  }
+
+  function updateCountdowns() {
+    const launchEl = $("launchCountdown");
+    const eventEl = $("eventCountdown");
+    if (launchEl && nextLaunchData) {
+      launchEl.textContent = formatCountdown(nextLaunchData.net);
+    }
+    if (eventEl && nextEventData) {
+      eventEl.textContent = formatCountdown(nextEventData.date);
+    }
   }
 
   async function safeFetch(url){
@@ -1246,15 +1634,19 @@
   async function loadAll(){
     $("statusText").textContent = "Updating feeds…";
 
-    const [newsRes, launchesRes, eventsRes] = await Promise.all([
+    const [newsRes, launchesRes, eventsRes, moonRes, neosRes] = await Promise.all([
       safeFetch("/api/news"),
       safeFetch("/api/launches"),
-      safeFetch("/api/events")
+      safeFetch("/api/events"),
+      safeFetch("/api/moon"),
+      safeFetch("/api/neos")
     ]);
 
     const news = newsRes.items || [];
     const launches = launchesRes.items || [];
     const events = eventsRes.items || [];
+    nextMoonData = moonRes && moonRes.ok ? moonRes : null;
+    neosData = neosRes && neosRes.ok ? neosRes.items : [];
 
     newsList = news;
     newsIndex = 0;
@@ -1262,11 +1654,33 @@
 
     launchesList = launches;
     eventsList = events;
-    bottomIndex = 0;
-    rotateBottomRow();
 
-    if (bottomTimer) clearInterval(bottomTimer);
-    bottomTimer = setInterval(rotateBottomRow, 8000);
+    const now = new Date();
+    
+    // Filter and find the closest upcoming launch
+    const upcomingLaunches = launchesList.filter(l => l.net && new Date(l.net) > now);
+    upcomingLaunches.sort((a, b) => new Date(a.net) - new Date(b.net));
+    nextLaunchData = upcomingLaunches[0] || launchesList[0] || null;
+
+    // Filter and find the closest upcoming celestial event (using YYYY-MM-DD comparison to show today's events)
+    const pad2 = (num) => String(num).padStart(2, '0');
+    const todayStr = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+    const upcomingEvents = eventsList.filter(e => {
+      if (!e.date) return false;
+      const eventDate = new Date(e.date);
+      if (isNaN(eventDate)) return false;
+      const eventStr = `${eventDate.getFullYear()}-${pad2(eventDate.getMonth() + 1)}-${pad2(eventDate.getDate())}`;
+      return eventStr >= todayStr;
+    });
+    upcomingEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+    nextEventData = upcomingEvents[0] || eventsList[0] || null;
+
+    renderStaticBottomRow();
+    updateCountdowns();
+
+    if (!countdownTimer) {
+      countdownTimer = setInterval(updateCountdowns, 1000);
+    }
 
     // Refresh homepage showcase
     await loadHomepageShowcase();
