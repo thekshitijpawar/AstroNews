@@ -1401,22 +1401,14 @@
     if (!desc) {
       return "Payload and mission specifics have not yet been disclosed.";
     }
-    const firstSentence = desc.split(/[.!?]/)[0] + ".";
-    if (firstSentence.length > 90) {
-      return firstSentence.slice(0, 87) + "...";
-    }
-    return firstSentence;
+    return desc.split(/[.!?]/)[0] + ".";
   }
 
   function getEventSummary(event) {
     if (!event) return "";
     const note = stripHtml(event.note || "");
     if (!note) return "";
-    const firstSentence = note.split(/[.!?]/)[0] + ".";
-    if (firstSentence.length > 90) {
-      return firstSentence.slice(0, 87) + "...";
-    }
-    return firstSentence;
+    return note.split(/[.!?]/)[0] + ".";
   }
 
   function renderStaticBottomRow() {
@@ -1435,7 +1427,7 @@
           <img src="${launchImg}" alt="rocket launch" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 0 10px rgba(0,0,0,0.5); flex-shrink: 0;" />
           <div style="flex: 1; min-width: 0;">
             <div class="col-title" style="margin-bottom: 2px;">${nextLaunchData.name}</div>
-            <div class="col-desc" style="-webkit-line-clamp: 3; line-height: 1.35;">
+            <div class="col-desc" style="-webkit-line-clamp: 4; line-height: 1.35;">
               <span style="color: var(--text-muted); font-size: 0.72rem;">
                 ${nextLaunchData.launch_service_provider?.name || "Unknown"} • ${nextLaunchData.pad?.location?.name?.split(",")?.[0] || "Unknown"}
               </span><br>
@@ -1471,7 +1463,7 @@
           <img src="${getCelestialImage(nextEventData)}" alt="celestial event" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 0 10px rgba(0,0,0,0.5); flex-shrink: 0;" />
           <div style="flex: 1; min-width: 0;">
             <div class="col-title" style="margin-bottom: 2px;">${nextEventData.name}</div>
-            <div class="col-desc" style="-webkit-line-clamp: 3; line-height: 1.35;">
+            <div class="col-desc" style="-webkit-line-clamp: 4; line-height: 1.35;">
               <span style="color: var(--text-muted); font-size: 0.72rem;">
                 ${nextEventData.where || "Global"} • ${fmtDate(nextEventData.date)}
               </span><br>
