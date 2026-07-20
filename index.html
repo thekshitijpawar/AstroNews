@@ -1254,18 +1254,19 @@
     const illumination = Math.round((1 - Math.cos(2 * Math.PI * phaseValue)) / 2 * 100);
     
     let name = "";
-    let emoji = "🌑";
-    if (age < 1.845) { name = "New Moon"; emoji = "🌑"; }
-    else if (age < 5.537) { name = "Waxing Crescent"; emoji = "🌒"; }
-    else if (age < 9.228) { name = "First Quarter"; emoji = "🌓"; }
-    else if (age < 12.92) { name = "Waxing Gibbous"; emoji = "🌔"; }
-    else if (age < 16.61) { name = "Full Moon"; emoji = "🌕"; }
-    else if (age < 20.30) { name = "Waning Gibbous"; emoji = "🌖"; }
-    else if (age < 23.99) { name = "Third Quarter"; emoji = "🌗"; }
-    else if (age < 27.68) { name = "Waning Crescent"; emoji = "🌘"; }
-    else { name = "New Moon"; emoji = "🌑"; }
+    if (age < 1.0 || age > 28.53) name = "New Moon";
+    else if (age < 6.8) name = "Waxing Crescent";
+    else if (age < 8.0) name = "First Quarter";
+    else if (age < 13.8) name = "Waxing Gibbous";
+    else if (age < 15.8) name = "Full Moon";
+    else if (age < 21.5) name = "Waning Gibbous";
+    else if (age < 22.8) name = "Third Quarter";
+    else name = "Waning Crescent";
     
-    return { name, illumination, emoji };
+    const imgIndex = Math.floor(phaseValue * 30) % 30;
+    const imageUrl = `https://static.theskylive.com/website/images/moon/500jpg/moon${imgIndex}.jpg`;
+    
+    return { name, illumination, imageUrl };
   }
 
   function getSunTimings(date = new Date()) {
@@ -1506,6 +1507,7 @@
       const localMoon = getMoonPhaseAndIllumination(now);
       moonName = localMoon.name;
       moonIllum = localMoon.illumination + "%";
+      moonImg = localMoon.imageUrl;
     }
 
     col3.innerHTML = `
