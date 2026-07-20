@@ -728,14 +728,18 @@ app.get("/api/moon", async (_req, res) => {
       illumination = illumMatch[1].trim();
     }
     
-    // Parse image
-    let imageUrl = "";
-    const imgMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
-    if (imgMatch) {
-      imageUrl = imgMatch[1].trim();
-    }
-    
     if (!phase) throw new Error("Could not parse moon phase from HTML");
+
+    // Dynamic NASA SVS Moon phase image (padded 3-digit index 000-359)
+    const now = new Date();
+    const baseNewMoon = new Date("2000-01-06T18:14:00Z").getTime();
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const synodicMonth = 29.530588853;
+    const diffDays = (now.getTime() - baseNewMoon) / msPerDay;
+    const phaseValue = (diffDays / synodicMonth) % 1.0;
+    const degree = Math.round(phaseValue * 360) % 360;
+    const padded = String(degree).padStart(3, '0');
+    const imageUrl = `https://cdn.jsdelivr.net/gh/acamarata/moon-cycle@main/mm-256-75/${padded}.webp`;
 
     res.json({
       ok: true,
@@ -767,8 +771,9 @@ app.get("/api/moon", async (_req, res) => {
     else if (age < 22.8) calcPhase = "Third Quarter";
     else calcPhase = "Waning Crescent";
 
-    const imgIndex = Math.floor(phaseValue * 30) % 30;
-    const fallbackImg = `https://static.theskylive.com/website/images/moon/500jpg/moon${imgIndex}.jpg`;
+    const degree = Math.round(phaseValue * 360) % 360;
+    const padded = String(degree).padStart(3, '0');
+    const fallbackImg = `https://cdn.jsdelivr.net/gh/acamarata/moon-cycle@main/mm-256-75/${padded}.webp`;
 
     res.json({
       ok: true,
