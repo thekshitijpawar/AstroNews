@@ -758,16 +758,17 @@ app.get("/api/moon", async (_req, res) => {
     const calcIllum = Math.round((1 - Math.cos(2 * Math.PI * phaseValue)) / 2 * 100);
     
     let calcPhase = "";
-    let fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon22.jpg";
-    if (age < 1.845) { calcPhase = "New Moon"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon0.jpg"; }
-    else if (age < 5.537) { calcPhase = "Waxing Crescent"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon5.jpg"; }
-    else if (age < 9.228) { calcPhase = "First Quarter"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon7.jpg"; }
-    else if (age < 12.92) { calcPhase = "Waxing Gibbous"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon11.jpg"; }
-    else if (age < 16.61) { calcPhase = "Full Moon"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon15.jpg"; }
-    else if (age < 20.30) { calcPhase = "Waning Gibbous"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon18.jpg"; }
-    else if (age < 23.99) { calcPhase = "Third Quarter"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon22.jpg"; }
-    else if (age < 27.68) { calcPhase = "Waning Crescent"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon26.jpg"; }
-    else { calcPhase = "New Moon"; fallbackImg = "https://static.theskylive.com/website/images/moon/500jpg/moon0.jpg"; }
+    if (age < 1.0 || age > 28.53) calcPhase = "New Moon";
+    else if (age < 6.8) calcPhase = "Waxing Crescent";
+    else if (age < 8.0) calcPhase = "First Quarter";
+    else if (age < 13.8) calcPhase = "Waxing Gibbous";
+    else if (age < 15.8) calcPhase = "Full Moon";
+    else if (age < 21.5) calcPhase = "Waning Gibbous";
+    else if (age < 22.8) calcPhase = "Third Quarter";
+    else calcPhase = "Waning Crescent";
+
+    const imgIndex = Math.floor(phaseValue * 30) % 30;
+    const fallbackImg = `https://static.theskylive.com/website/images/moon/500jpg/moon${imgIndex}.jpg`;
 
     res.json({
       ok: true,
