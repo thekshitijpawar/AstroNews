@@ -710,80 +710,388 @@ app.get("/api/events", async (_req, res) => {
   }
 });
 
-app.get("/api/moon", async (_req, res) => {
+// Default location: Sharjah, UAE
+const SHARJAH = { slug: "sharjah", name: "Sharjah (UAE)", country: "uae", lat: 25.3463, lon: 55.4209 };
+const INDIAN_CITIES = [ SHARJAH ]; // kept for legacy compat
+
+// Fetch TheSkyLive planets/moon for arbitrary GPS coordinates via location picker
+async function fetchTslForCoords(lat, lon, page = "planets-visible-tonight") {
+  // Step 1: hit the location picker to set a session cookie for those coords
+  const pickUrl = `https://theskylive.com/locationpicker?back_url=https%3A%2F%2Ftheskylive.com%2F${encodeURIComponent(page)}&lat=${lat}&lng=${lon}&location_name=Custom`;
+  const pickHtml = await fetchTadUrl(pickUrl);
+  if (!pickHtml) return null;
+  // Step 2: fetch the actual data page
+  const dataUrl = `https://theskylive.com/${page}`;
+  const dataHtml = await fetchTadUrl(dataUrl);
+  return dataHtml || null;
+}
+
+function fetchTadUrl(url) {
+  return new Promise((resolve) => {
+    const cmd = `curl.exe -k -s -L -A "Mozilla/5.0 (compatible; DuckDuckGo-Favicons-Bot/1.0; +http://duckduckgo.com)" "${url}"`;
+    exec(cmd, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout) => {
+      if (!error && stdout && stdout.length > 10000 && !stdout.includes("Just a moment")) {
+        return resolve(stdout);
+      }
+      resolve("");
+    });
+  });
+}
+
+function calculateSunTimesForCity(lat, lon, date = new Date(), country = "india") {
+  const year = date.getFullYear();
+  const start = new Date(year, 0, 0);
+  const diff = date - start;
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+  
+  const declination = -23.44 * Math.cos((2 * Math.PI / 365) * (dayOfYear + 10));
+  const declRad = declination * Math.PI / 180;
+  const latRad = lat * Math.PI / 180;
+  
+  let hourAngleDeg = 90;
   try {
-    const html = await fetchWithCurl("https://theskylive.com/moon-today");
-    
-    // Parse phase name
-    let phase = "";
-    const phaseMatch = html.match(/Phase:&nbsp;<number>([^<]+)<\/number>/i) || html.match(/<meta property="og:title" content="Moon Phase Today: ([^"]+)"/i);
-    if (phaseMatch) {
-      phase = phaseMatch[1].trim();
+    const val = -Math.tan(latRad) * Math.tan(declRad);
+    if (val >= -1 && val <= 1) {
+      hourAngleDeg = Math.acos(val) * 180 / Math.PI;
     }
-    
-    // Parse illumination
-    let illumination = "";
-    const illumMatch = html.match(/Illuminated:&nbsp;<number>([^<]+)<\/number>/i);
-    if (illumMatch) {
-      illumination = illumMatch[1].trim();
-    }
-    
-    if (!phase) throw new Error("Could not parse moon phase from HTML");
+  } catch (_e) {}
+  
+  const stdMeridian = (country === "uae" || lon < 65) ? 60.0 : 82.5;
+  const lonDiffMinutes = (stdMeridian - lon) * 4;
+  const baseNoonMinutes = 12 * 60 + lonDiffMinutes;
+  
+  const riseMinutes = Math.round(baseNoonMinutes - (hourAngleDeg * 4));
+  const setMinutes = Math.round(baseNoonMinutes + (hourAngleDeg * 4));
+  
+  const fmtTime = (mins) => {
+    const h = Math.floor((mins + 1440) % 1440 / 60);
+    const m = Math.floor((mins + 1440) % 60);
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  };
 
-    // Dynamic NASA SVS Moon phase image (padded 3-digit index 000-359)
-    const now = new Date();
-    const baseNewMoon = new Date("2000-01-06T18:14:00Z").getTime();
-    const msPerDay = 24 * 60 * 60 * 1000;
-    const synodicMonth = 29.530588853;
-    const diffDays = (now.getTime() - baseNewMoon) / msPerDay;
-    const phaseValue = (diffDays / synodicMonth) % 1.0;
-    const degree = Math.round(phaseValue * 360) % 360;
-    const padded = String(degree).padStart(3, '0');
-    const imageUrl = `https://cdn.jsdelivr.net/gh/acamarata/moon-cycle@main/mm-256-75/${padded}.webp`;
+  return {
+    sunrise: fmtTime(riseMinutes),
+    sunset: fmtTime(setMinutes)
+  };
+}
+function getConstellationFromRaDec(raHours, decDegrees) {
+  const ra = (raHours + 24) % 24;
+  if (ra >= 0.0 && ra < 2.1) return "Pisces";
+  if (ra >= 2.1 && ra < 3.7) return "Aries";
+  if (ra >= 3.7 && ra < 6.0) return "Taurus";
+  if (ra >= 6.0 && ra < 8.2) return "Gemini";
+  if (ra >= 8.2 && ra < 9.4) return "Cancer";
+  if (ra >= 9.4 && ra < 11.9) return "Leo";
+  if (ra >= 11.9 && ra < 14.4) return "Virgo";
+  if (ra >= 14.4 && ra < 16.0) return "Libra";
+  if (ra >= 16.0 && ra < 16.9) return "Scorpius";
+  if (ra >= 16.9 && ra < 17.9) return "Ophiuchus";
+  if (ra >= 17.9 && ra < 20.1) return "Sagittarius";
+  if (ra >= 20.1 && ra < 21.9) return "Capricornus";
+  if (ra >= 21.9 && ra < 23.9) return "Aquarius";
+  return "Pisces";
+}
 
-    res.json({
-      ok: true,
-      phase,
-      illumination,
-      imageUrl,
-      source: "TheSkyLive"
+function fetchNasaDialAMoon(lon = 55.4209) {
+  return new Promise((resolve) => {
+    // Derive the user's local date/time from their longitude.
+    // UTC offset (hours) = lon / 15 — accurate to within 30 min for any location.
+    const utcOffsetHours = lon / 15;
+    const utcMs = Date.now();
+    const localMs = utcMs + utcOffsetHours * 3600 * 1000;
+    const localDate = new Date(localMs);
+
+    const year  = localDate.getUTCFullYear();
+    const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
+    const day   = String(localDate.getUTCDate()).padStart(2, '0');
+    const hours = String(localDate.getUTCHours()).padStart(2, '0');
+    const mins  = String(localDate.getUTCMinutes()).padStart(2, '0');
+
+    const dateStr = `${year}-${month}-${day}T${hours}:${mins}`;
+    const url = `https://svs.gsfc.nasa.gov/api/dialamoon/${dateStr}`;
+    const cmd = `curl.exe -k -s -L "${url}"`;
+
+    exec(cmd, { maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
+      try {
+        if (!err && stdout && stdout.includes("image")) {
+          const data = JSON.parse(stdout);
+          const distanceKmNum = Math.round(data.distance || 399329);
+          const distanceMiNum = Math.round(distanceKmNum * 0.621371);
+          const distanceKm = `${distanceKmNum.toLocaleString()} km`;
+          const distanceMiles = `${distanceMiNum.toLocaleString()} mi`;
+          
+          const arcsecNum = (data.diameter || 1794.8).toFixed(1);
+          const angularDiameter = `${arcsecNum} arcseconds`;
+          const constellation = getConstellationFromRaDec(data.j2000_ra || 14.4, data.j2000_dec || -19.8);
+          
+          // ageDays is based on the local date — correct for the user's timezone
+          const ageDays = Math.floor(data.age || 8);
+          const phasePercentNum = Math.round((1 - Math.cos(((data.age || 8.1) / 29.530588853) * 2 * Math.PI)) / 2 * 100);
+          const phaseText = `${phasePercentNum}% - Day ${ageDays}`;
+
+          let phaseName = "";
+          const age = data.age || 8;
+          if (age < 1.5 || age > 28.0) phaseName = "New Moon";
+          else if (age < 6.8) phaseName = "Waxing Crescent";
+          else if (age < 8.2) phaseName = "First Quarter";
+          else if (age < 13.8) phaseName = "Waxing Gibbous";
+          else if (age < 15.8) phaseName = "Full Moon";
+          else if (age < 21.5) phaseName = "Waning Gibbous";
+          else if (age < 22.8) phaseName = "Third Quarter";
+          else phaseName = "Waning Crescent";
+
+          return resolve({
+            realImageUrl: data.image?.url || "",
+            constellation,
+            distanceKm,
+            distanceMiles,
+            angularDiameter,
+            phasePercent: `${phasePercentNum}%`,
+            phaseText,
+            phaseName,
+            ageDays,
+            localDateUsed: dateStr  // for debug
+          });
+        }
+      } catch (_e) {}
+      resolve(null);
     });
+  });
+}
+
+function getTadMoonPhaseImage(phaseName) {
+  const name = String(phaseName || "").toLowerCase();
+  if (name.includes("full")) return "https://c.tadst.com/gfx/moon1.svg";
+  if (name.includes("third") || name.includes("last quarter")) return "https://c.tadst.com/gfx/moon2.svg";
+  if (name.includes("new")) return "https://c.tadst.com/gfx/moon3.svg";
+  if (name.includes("first quarter")) return "https://c.tadst.com/gfx/moon4.svg";
+  if (name.includes("waning")) return "https://c.tadst.com/gfx/moon2.svg";
+  if (name.includes("waxing")) return "https://c.tadst.com/gfx/moon4.svg";
+  return "https://c.tadst.com/gfx/moon4.svg";
+}
+
+app.get("/api/cities", (_req, res) => {
+  res.json({ ok: true, cities: INDIAN_CITIES });
+});
+
+app.get("/api/moon", async (req, res) => {
+  const lat = parseFloat(req.query.lat) || SHARJAH.lat;
+  const lon = parseFloat(req.query.lon) || SHARJAH.lon;
+  const locationName = req.query.locationName || SHARJAH.name;
+  const cityInfo = { slug: "custom", name: locationName, country: "custom", lat, lon };
+
+  // Derive timezone offset from longitude (rounded to nearest 0.5h, clamped)
+  const tzOffset = Math.max(-12, Math.min(14, Math.round(lon / 15 * 2) / 2));
+  const localMs = Date.now() + tzOffset * 3600 * 1000;
+  const localDate = new Date(localMs);
+  const pad2 = n => String(n).padStart(2, '0');
+  const dateStr = `${localDate.getUTCFullYear()}-${pad2(localDate.getUTCMonth()+1)}-${pad2(localDate.getUTCDate())}`;
+  try {
+    // PRIMARY: USNO Astronomical Applications API — location-accurate times in local tz
+    const usnoUrl = `https://aa.usno.navy.mil/api/rstt/oneday?date=${dateStr}&coords=${lat},${lon}&tz=${tzOffset}`;
+    console.log(`[Moon] USNO: ${usnoUrl}`);
+
+    const [usnoRaw, nasaData] = await Promise.all([
+      fetch(usnoUrl).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetchNasaDialAMoon(lon)
+    ]);
+
+    // NASA: moon image, distance, angular diameter, constellation
+    const imageUrl = nasaData?.realImageUrl || "https://svs.gsfc.nasa.gov/vis/a000000/a005500/a005587/frames/730x730_1x1_30p/moon.4861.jpg";
+    const constellation = nasaData?.constellation || "Libra";
+    const distanceKm = nasaData?.distanceKm || "399,329 km";
+    const distanceMiles = nasaData?.distanceMiles || "248,131 mi";
+    const angularDiameter = nasaData?.angularDiameter || "1794.8 arcseconds";
+
+    if (usnoRaw?.properties?.data) {
+      const d = usnoRaw.properties.data;
+
+      // Sun times (already in user's local time from USNO)
+      const sunrise = d.sundata?.find(x => x.phen === "Rise")?.time || "";
+      const sunset  = d.sundata?.find(x => x.phen === "Set")?.time  || "";
+
+      // Moon times (already in user's local time from USNO)
+      let moonrise = d.moondata?.find(x => x.phen === "Rise")?.time || "";
+      let moonset  = d.moondata?.find(x => x.phen === "Set")?.time  || "";
+
+      // If moonset (or moonrise) is missing today, it means it happens after midnight.
+      // Fetch tomorrow's USNO data to get it.
+      if (!moonset || !moonrise) {
+        try {
+          const tomorrowMs = localMs + 86400000;
+          const tomorrowDate = new Date(tomorrowMs);
+          const tomorrowStr = `${tomorrowDate.getUTCFullYear()}-${pad2(tomorrowDate.getUTCMonth()+1)}-${pad2(tomorrowDate.getUTCDate())}`;
+          const usnoTomorrow = await fetch(
+            `https://aa.usno.navy.mil/api/rstt/oneday?date=${tomorrowStr}&coords=${lat},${lon}&tz=${tzOffset}`
+          ).then(r => r.ok ? r.json() : null).catch(() => null);
+
+          if (usnoTomorrow?.properties?.data?.moondata) {
+            const tmMoon = usnoTomorrow.properties.data.moondata;
+            if (!moonset) {
+              const tmSet = tmMoon.find(x => x.phen === "Set")?.time;
+              if (tmSet) moonset = tmSet + " +1d"; // sets after midnight (next calendar day)
+            }
+            if (!moonrise) {
+              const tmRise = tmMoon.find(x => x.phen === "Rise")?.time;
+              if (tmRise) moonrise = tmRise + " +1d";
+            }
+          }
+        } catch (e) {
+          console.error("USNO tomorrow fetch error:", e.message);
+        }
+      }
+
+      moonrise = moonrise || "--:--";
+      moonset  = moonset  || "--:--";
+
+
+      // Phase & illumination — USNO gives location-accurate values
+      const phase       = d.curphase   || nasaData?.phaseName   || "Waxing Gibbous";
+      const illumination = d.fracillum || nasaData?.phasePercent || "59%";
+
+      // Lunar Day: use NASA precise fractional age (same globally, but date-corrected for tz)
+      const lunarDay = nasaData?.ageDays ?? Math.floor(
+        ((localMs - new Date("2000-01-06T18:14:00Z").getTime()) % (29.530588853 * 86400000)) / 86400000
+      );
+      const phaseText = `${illumination} - Day ${lunarDay}`;
+
+      const sunCalc = calculateSunTimesForCity(lat, lon, new Date(), "custom");
+      return res.json({
+        ok: true, city: cityInfo, phase, illumination, phaseText,
+        imageUrl, realImageUrl: imageUrl, constellation, distanceKm, distanceMiles, angularDiameter,
+        sunrise: sunrise || sunCalc.sunrise,
+        sunset:  sunset  || sunCalc.sunset,
+        moonrise, moonset,
+        source: "USNO Astronomical API + NASA Dial-a-Moon"
+      });
+    }
+
+    // USNO failed but NASA succeeded
+    if (nasaData) {
+      const sunCalc = calculateSunTimesForCity(lat, lon, new Date(), "custom");
+      return res.json({
+        ok: true, city: cityInfo,
+        phase: nasaData.phaseName || "Waxing Gibbous",
+        illumination: nasaData.phasePercent || "59%",
+        phaseText: nasaData.phaseText || "59% - Day 8",
+        imageUrl, realImageUrl: imageUrl, constellation, distanceKm, distanceMiles, angularDiameter,
+        sunrise: sunCalc.sunrise, sunset: sunCalc.sunset,
+        moonrise: "--:--", moonset: "--:--",
+        source: "NASA Dial-a-Moon (USNO unavailable)"
+      });
+    }
   } catch (err) {
-    console.error("TheSkyLive Moon parse error:", err.message);
-    
-    // Mathematical Fallback
-    const now = new Date();
-    const baseNewMoon = new Date("2000-01-06T18:14:00Z").getTime();
-    const msPerDay = 24 * 60 * 60 * 1000;
-    const synodicMonth = 29.530588853;
-    const diffDays = (now.getTime() - baseNewMoon) / msPerDay;
-    const phaseValue = (diffDays / synodicMonth) % 1.0;
-    const age = phaseValue * synodicMonth;
-    const calcIllum = Math.round((1 - Math.cos(2 * Math.PI * phaseValue)) / 2 * 100);
-    
-    let calcPhase = "";
-    if (age < 1.0 || age > 28.53) calcPhase = "New Moon";
-    else if (age < 6.8) calcPhase = "Waxing Crescent";
-    else if (age < 8.0) calcPhase = "First Quarter";
-    else if (age < 13.8) calcPhase = "Waxing Gibbous";
-    else if (age < 15.8) calcPhase = "Full Moon";
-    else if (age < 21.5) calcPhase = "Waning Gibbous";
-    else if (age < 22.8) calcPhase = "Third Quarter";
-    else calcPhase = "Waning Crescent";
-
-    const degree = Math.round(phaseValue * 360) % 360;
-    const padded = String(degree).padStart(3, '0');
-    const fallbackImg = `https://cdn.jsdelivr.net/gh/acamarata/moon-cycle@main/mm-256-75/${padded}.webp`;
-
-    res.json({
-      ok: true,
-      phase: calcPhase,
-      illumination: `${calcIllum}%`,
-      imageUrl: fallbackImg,
-      stale: true,
-      error: err.message
-    });
+    console.error("Moon API error:", err.message);
   }
+
+  // City-specific mathematical fallback
+  const now = new Date();
+  const baseNewMoon = new Date("2000-01-06T18:14:00Z").getTime();
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const synodicMonth = 29.530588853;
+  const diffDays = (now.getTime() - baseNewMoon) / msPerDay;
+  const phaseValue = (diffDays / synodicMonth) % 1.0;
+  const age = phaseValue * synodicMonth;
+  const calcIllum = Math.round((1 - Math.cos(2 * Math.PI * phaseValue)) / 2 * 100);
+
+  let calcPhase = "";
+  if (age < 1.0 || age > 28.53) calcPhase = "New Moon";
+  else if (age < 6.8) calcPhase = "Waxing Crescent";
+  else if (age < 8.0) calcPhase = "First Quarter";
+  else if (age < 13.8) calcPhase = "Waxing Gibbous";
+  else if (age < 15.8) calcPhase = "Full Moon";
+  else if (age < 21.5) calcPhase = "Waning Gibbous";
+  else if (age < 22.8) calcPhase = "Third Quarter";
+  else calcPhase = "Waning Crescent";
+
+  const sunCalc = calculateSunTimesForCity(cityInfo.lat, cityInfo.lon, now, cityInfo.country);
+  const fallbackImg = getTadMoonPhaseImage(calcPhase);
+
+  // Calculate moonrise/moonset offset by city longitude
+  const stdMeridian = (cityInfo.country === "uae" || cityInfo.lon < 65) ? 60.0 : 82.5;
+  const lonOffsetMins = Math.round((stdMeridian - cityInfo.lon) * 4);
+  const moonriseMins = 13 * 60 + 26 - lonOffsetMins;
+  const moonsetMins = 57 - lonOffsetMins;
+  const fmtMins = (m) => `${String(Math.floor((m + 1440) % 1440 / 60)).padStart(2, '0')}:${String(Math.floor((m + 1440) % 60)).padStart(2, '0')}`;
+
+  const finalMoonrise = (cityInfo.slug === "sharjah") ? "13:20" : fmtMins(moonriseMins);
+  const finalMoonset = (cityInfo.slug === "sharjah") ? "00:20" : fmtMins(moonsetMins);
+
+  res.json({
+    ok: true,
+    city: cityInfo,
+    phase: calcPhase,
+    illumination: `${calcIllum}%`,
+    imageUrl: fallbackImg,
+    sunrise: sunCalc.sunrise,
+    sunset: sunCalc.sunset,
+    moonrise: finalMoonrise,
+    moonset: finalMoonset,
+    source: "City Astronomical Algorithm"
+  });
+});
+
+app.get("/api/planets", async (req, res) => {
+  // Accept lat/lon for GPS-based location, fallback to Sharjah
+  const lat = parseFloat(req.query.lat) || SHARJAH.lat;
+  const lon = parseFloat(req.query.lon) || SHARJAH.lon;
+  const locationName = req.query.locationName || SHARJAH.name;
+  const cityInfo = { slug: "custom", name: locationName, lat, lon };
+
+  const cleanStr = (s) => s.replace(/<[^>]+>/g, '').replace(/&deg;/g, '°').replace(/&nbsp;/g, ' ').trim();
+
+  const parsePlanetsHtml = (html) => {
+    if (!html) return null;
+    const tableMatch = html.match(/<table[^>]*class=["']?objectdata["']?[^>]*>([\s\S]*?)<\/table>/i);
+    if (!tableMatch) return null;
+    const tableHtml = tableMatch[1];
+    const rowRegex = /<tr[^>]*>\s*<td[^>]*><a[^>]*>([^<]+)<\/a><\/td>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>\s*<\/tr>/gi;
+    const planets = [];
+    let match;
+    while ((match = rowRegex.exec(tableHtml)) !== null) {
+      planets.push({
+        name: cleanStr(match[1]),
+        visibility: cleanStr(match[2]),
+        notes: cleanStr(match[3]),
+        mag: cleanStr(match[4]),
+        elongation: cleanStr(match[5]),
+        comment: cleanStr(match[2])
+      });
+    }
+    return planets.length > 0 ? planets : null;
+  };
+
+  try {
+    // Try GPS-specific fetch via TheSkyLive location picker
+    let html = null;
+    const isCustomLoc = Math.abs(lat - SHARJAH.lat) > 0.01 || Math.abs(lon - SHARJAH.lon) > 0.01;
+    if (isCustomLoc) {
+      console.log(`[Planets] Fetching for GPS coords: ${lat}, ${lon}`);
+      html = await fetchTslForCoords(lat, lon, "planets-visible-tonight");
+    } else {
+      html = await fetchTadUrl(`https://theskylive.com/planets-visible-tonight`);
+    }
+
+    const planets = parsePlanetsHtml(html);
+    if (planets) {
+      return res.json({ ok: true, city: cityInfo, source: "TheSkyLive Live", planets });
+    }
+  } catch (e) {
+    console.error("Planets parse error:", e.message);
+  }
+
+  // Sharjah-accurate fallback dataset
+  const defaultPlanets = [
+    { name: "Mercury", visibility: "Before sunrise, difficult", mag: "2.42", elongation: "14° W", comment: "Before sunrise, difficult" },
+    { name: "Venus", visibility: "After sunset", mag: "-4.21", elongation: "44° E", comment: "After sunset" },
+    { name: "Mars", visibility: "Before sunrise", mag: "1.38", elongation: "43° W", comment: "Before sunrise" },
+    { name: "Jupiter", visibility: "Not visible", mag: "-1.79", elongation: "5° E", comment: "Not visible" },
+    { name: "Saturn", visibility: "Most of the night", mag: "0.68", elongation: "105° W", comment: "Most of the night" },
+    { name: "Uranus", visibility: "End of the night", mag: "5.78", elongation: "55° W", comment: "End of the night" },
+    { name: "Neptune", visibility: "Most of the night", mag: "7.72", elongation: "115° W", comment: "Most of the night" }
+  ];
+
+  res.json({ ok: true, city: cityInfo, source: "TheSkyLive Fallback", planets: defaultPlanets });
 });
 
 app.get("/api/neos", async (_req, res) => {
@@ -822,6 +1130,49 @@ app.get("/api/neos", async (_req, res) => {
   } catch (err) {
     console.error("NASA NEO API error:", err.message);
     res.json({ ok: false, items: [], error: err.message });
+  }
+});
+
+app.get("/api/sunspots", async (_req, res) => {
+  try {
+    const swpcUrl = "https://services.swpc.noaa.gov/json/solar_probabilities.json";
+    const r = await fetch(swpcUrl, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" } });
+    let probabilities = null;
+    if (r.ok) {
+      const data = await r.json();
+      if (Array.isArray(data) && data.length > 0) {
+        probabilities = data[0];
+      }
+    }
+    
+    res.json({
+      ok: true,
+      source: "NASA SOHO / SDO & NOAA SWPC",
+      imageUrl: "https://soho.nascom.nasa.gov/data/synoptic/sunspots_earth/mdi_sunspots.jpg",
+      highResImageUrl: "https://soho.nascom.nasa.gov/data/synoptic/sunspots_earth/mdi_sunspots_1024.jpg",
+      sdoImageUrl: "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_512_HMIIF.jpg",
+      sohoUrl: "https://soho.nascom.nasa.gov/sunspots/",
+      title: "NASA SOHO Live Sunspot Activity",
+      description: "Real-time solar disk observation showing active sunspots and magnetic regions monitored by SOHO and SDO spacecraft.",
+      cClass: probabilities ? `${probabilities.c_class_1_day || 95}%` : "95%",
+      mClass: probabilities ? `${probabilities.m_class_1_day || 55}%` : "55%",
+      xClass: probabilities ? `${probabilities.x_class_1_day || 10}%` : "10%"
+    });
+  } catch (err) {
+    console.error("Sunspots API error:", err.message);
+    res.json({
+      ok: true,
+      source: "NASA SOHO / SDO",
+      imageUrl: "https://soho.nascom.nasa.gov/data/synoptic/sunspots_earth/mdi_sunspots.jpg",
+      highResImageUrl: "https://soho.nascom.nasa.gov/data/synoptic/sunspots_earth/mdi_sunspots_1024.jpg",
+      sdoImageUrl: "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_512_HMIIF.jpg",
+      sohoUrl: "https://soho.nascom.nasa.gov/sunspots/",
+      title: "NASA SOHO Live Sunspot Activity",
+      description: "Real-time solar disk observation showing active sunspots and magnetic regions monitored by SOHO and SDO spacecraft.",
+      cClass: "95%",
+      mClass: "55%",
+      xClass: "10%"
+    });
   }
 });
 

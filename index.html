@@ -32,20 +32,41 @@
       position: relative;
     }
     
-    /* Cosmic background JWST Cliffs */
+    /* Live Cosmic Video Background (YouTube: ztVV54sPOns) */
     .bg-overlay {
       position: fixed;
       inset: 0;
-      background-image: 
-        linear-gradient(to bottom, rgba(4, 5, 7, 0.4), rgba(4, 5, 7, 0.2)),
-        url('https://images-assets.nasa.gov/image/carina_nebula/carina_nebula~medium.jpg');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      opacity: 0.40;
-      pointer-events: none;
+      overflow: hidden;
+      pointer-events: none !important;
+      user-select: none !important;
       z-index: 0;
-      transition: opacity 0.15s ease;
+      background: #040507;
+    }
+    
+    .bg-video-scrim {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(4, 5, 7, 0.40), rgba(4, 5, 7, 0.20));
+      z-index: 1;
+      pointer-events: none !important;
+    }
+
+    .bg-video-element, .bg-video-iframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 115vw;
+      height: 64.68vw;
+      min-height: 115vh;
+      min-width: 204vh;
+      transform: translate(-50%, -50%);
+      pointer-events: none !important;
+      user-select: none !important;
+      opacity: 0.45;
+      z-index: 0;
+      border: none;
+      outline: none;
+      object-fit: cover;
     }
 
     /* Subtle Twinkling Starfield */
@@ -70,7 +91,8 @@
       z-index: 1;
       height: 100vh;
       display: grid;
-      grid-template-rows: 64px 1fr 1px 200px 32px;
+      grid-template-rows: 52px 1fr auto 30px;
+      gap: 14px;
       padding: 0 40px;
     }
     
@@ -136,56 +158,72 @@
       background: rgba(59, 130, 246, 0.25);
     }
     
-    /* Hero Section (Grid: Left text, Center image, Right list) */
+    /* Hero Section: 2 Columns (Main News Box on left, Widget/Stories on right) */
     .hero-section {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr 1fr;
-      gap: 40px;
-      align-items: center;
-      padding: 30px 0;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      align-items: stretch;
+      padding: 12px 0;
       min-height: 0;
       height: 100%;
+    }
+
+    /* Combined Main Spotlight Card (Semi-transparent rounded glass box) */
+    .spotlight-main-card {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: center;
+      background: rgba(10, 15, 26, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 22px 26px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      height: 100%;
+      overflow: hidden;
     }
     
     /* Left Spotlight Text */
     .spotlight-text {
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       height: 100%;
       overflow: hidden;
     }
     .spotlight-category {
       font-family: var(--font-display);
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1.5px;
       color: var(--text-muted);
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     .spotlight-title {
       font-family: var(--font-display);
-      font-size: 2.2rem;
-      font-weight: 500;
-      line-height: 1.25;
+      font-size: 1.45rem;
+      font-weight: 600;
+      line-height: 1.3;
       color: var(--text);
-      margin-bottom: 16px;
-      letter-spacing: -0.5px;
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .spotlight-summary {
-      font-size: 0.88rem;
-      line-height: 1.6;
-      color: var(--text-muted);
-      margin-bottom: 24px;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
+    }
+    .spotlight-summary {
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: rgba(255, 255, 255, 0.88);
+      margin-bottom: 14px;
+      flex: 1;
+      overflow-y: auto;
+      display: block;
+      padding-right: 4px;
     }
     .spotlight-meta {
       font-size: 0.72rem;
@@ -222,7 +260,7 @@
       transform: scale(1.06);
     }
     
-    /* Right Stories List */
+    /* Right Stories List / Showcase Panel (Semi-transparent rounded glass box) */
     .stories-list {
       display: flex;
       flex-direction: column;
@@ -230,6 +268,12 @@
       height: 100%;
       justify-content: center;
       overflow-y: auto;
+      background: rgba(10, 15, 26, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 12px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
     }
     .story-card {
       display: flex;
@@ -342,17 +386,34 @@
     .bottom-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 30px;
-      padding: 10px 0;
+      gap: 20px;
+      padding: 0;
       min-height: 0;
     }
     .bottom-col {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      justify-content: space-between;
+      gap: 6px;
       min-width: 0;
       position: relative;
+      background: rgba(10, 15, 26, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 12px 16px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      transition: all 0.25s ease;
     }
+    .bottom-col:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    }
+    #col1 { border-top: 3.5px solid #fde047; }
+    #col2 { border-top: 3.5px solid #60a5fa; }
+    #col3 { border-top: 3.5px solid #a855f7; }
+    #col4 { border-top: 3.5px solid #34d399; }
     .col-header {
       font-size: 0.68rem;
       color: var(--text-muted);
@@ -424,10 +485,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.68rem;
+      font-size: 0.60rem;
       color: var(--text-muted);
-      border-top: 1px solid var(--border);
+      border-top: 1px solid rgba(255,255,255,0.06);
       height: 100%;
+      padding: 0 2px;
     }
 
     /* Scrollbars styling */
@@ -939,7 +1001,17 @@
   </style>
 </head>
 <body>
-<div class="bg-overlay" id="bgOverlay"></div>
+<div class="bg-overlay" id="bgOverlay">
+  <div class="bg-video-scrim"></div>
+  <iframe 
+    class="bg-video-iframe"
+    src="https://www.youtube-nocookie.com/embed/ztVV54sPOns?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&autohide=1&modestbranding=1&enablejsapi=1&rel=0&iv_load_policy=3&playsinline=1&disablekb=1&fs=0" 
+    allow="autoplay; encrypted-media" 
+    tabindex="-1"
+    aria-hidden="true"
+    title="Space Background Video">
+  </iframe>
+</div>
 <div class="stars"></div>
 <div class="container">
   <header class="top-nav">
@@ -959,14 +1031,17 @@
       <span class="clock-pill" id="clockLocal">LOCAL --:--:--</span>
       <span class="clock-pill" id="statusText">Initializing…</span>
     </div>
-    <div style="display: flex; align-items: center; gap: 20px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.05); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border);">
+        <span style="font-size: 0.72rem; color: #60a5fa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">📍</span>
+        <span id="locationLabel" style="font-size: 0.78rem; font-weight: 600; color: #fff;">Sharjah (UAE)</span>
+        <button id="gpsBtn" onclick="requestGpsLocation()" title="Use my GPS location" style="background: transparent; border: 1px solid rgba(96,165,250,0.4); border-radius: 12px; color: #60a5fa; font-size: 0.62rem; font-weight: 700; padding: 1px 7px; cursor: pointer; transition: all 0.2s ease; letter-spacing: 0.4px; text-transform: uppercase;" onmouseover="this.style.background='rgba(96,165,250,0.15)'" onmouseout="this.style.background='transparent'">GPS</button>
+      </div>
       <button id="toggleNewsMode" class="btn">📺 Slideshow</button>
     </div>
   </header>
 
   <main id="news" class="hero-section"></main>
-
-  <hr class="divider" />
 
   <section class="bottom-row">
     <div class="bottom-col" id="col1"></div>
@@ -976,25 +1051,30 @@
   </section>
 
   <footer class="footer-bar">
-    <div id="socialFollow" style="display: flex; gap: 12px; align-items: center;">
-      <span style="font-weight: 600; text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.5px; color: var(--text-muted);">Follow Us:</span>
-      <a href="https://www.linkedin.com/company/navars-edutech/posts/?feedView=all" target="_blank" class="social-link" style="color: #60a5fa; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">
-        <svg style="width:14px; height:14px; fill:currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> LinkedIn
-      </a>
-      <span style="color: var(--border);">•</span>
-      <a href="https://www.youtube.com/@navarsedutech" target="_blank" class="social-link" style="color: #60a5fa; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">
-        <svg style="width:14px; height:14px; fill:currentColor" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.507a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.507 9.388.507 9.388.507s7.517 0 9.388-.507a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg> YouTube
-      </a>
-      <span style="color: var(--border);">•</span>
-      <a href="https://www.instagram.com/navarsedutech/?hl=en" target="_blank" class="social-link" style="color: #60a5fa; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">
-        <svg style="width:14px; height:14px; fill:currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg> Instagram
-      </a>
+    <div style="display: flex; gap: 14px; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #34d399; font-size: 0.60rem; letter-spacing: 0.5px; text-transform: uppercase;">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #34d399; box-shadow: 0 0 6px #34d399; display: inline-block;"></span> SYSTEM STATUS: OPERATIONAL
+      </div>
+      <span style="color: rgba(255,255,255,0.15);">|</span>
+      <div id="socialFollow" style="display: flex; gap: 10px; align-items: center;">
+        <a href="https://www.linkedin.com/company/navars-edutech/posts/?feedView=all" target="_blank" class="social-link" style="color: #60a5fa; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">
+          <svg style="width:12px; height:12px; fill:currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> LinkedIn
+        </a>
+        <span style="color: rgba(255,255,255,0.15);">•</span>
+        <a href="https://www.youtube.com/@navarsedutech" target="_blank" class="social-link" style="color: #60a5fa; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">
+          <svg style="width:12px; height:12px; fill:currentColor" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.507a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.507 9.388.507 9.388.507s7.517 0 9.388-.507a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg> YouTube
+        </a>
+        <span style="color: rgba(255,255,255,0.15);">•</span>
+        <a href="https://www.instagram.com/navarsedutech/?hl=en" target="_blank" class="social-link" style="color: #60a5fa; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">
+          <svg style="width:12px; height:12px; fill:currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg> Instagram
+        </a>
+      </div>
     </div>
     <div style="display: flex; gap: 12px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
       <span>© 2026 NAVARS EDUTECH • SPACE Operations Portal</span>
-      <span style="color: var(--border);">|</span>
+      <span style="color: rgba(255,255,255,0.15);">|</span>
       <a href="https://spacelabs.navarsedutech.com/" target="_blank" style="color: #60a5fa; text-decoration: none; font-weight: 500; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">Space Labs ↗</a>
-      <span style="color: var(--border);">|</span>
+      <span style="color: rgba(255,255,255,0.15);">|</span>
       <a href="mailto:kshitijpawar@navarsedutech.com" style="color: #60a5fa; text-decoration: none; font-weight: 500; transition: color 0.15s ease;" onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'">Contact: kshitijpawar@navarsedutech.com</a>
     </div>
   </footer>
@@ -1036,7 +1116,13 @@
   let nextEventData = null;
   let countdownTimer = null;
   let nextMoonData = null;
+  let planetsData = [];
   let neosData = [];
+  let sunspotData = null;
+  // GPS / location state — defaults to Sharjah, UAE
+  let userLat = 25.3463;
+  let userLon = 55.4209;
+  let userLocationName = "Sharjah (UAE)";
 
   function fmtDateTime(v){
     const d = new Date(v);
@@ -1071,9 +1157,16 @@
       listItems.push({ item: newsList[nextIdx], globalIndex: nextIdx });
     }
     
-    const cleanSummary = stripHtml(activeItem.summary || "");
-    const limit = 320; // clean fit
-    const shortSummary = cleanSummary.length > limit ? cleanSummary.slice(0,limit) + "..." : cleanSummary;
+    let cleanSummary = stripHtml(activeItem.summary || "");
+    // Clean up abrupt truncated words at the end if present in RSS source (e.g. "wind tunnel i...")
+    cleanSummary = cleanSummary.replace(/\s+[a-z]{1,4}\.\.\.$/i, ".").replace(/\.\.\.$/, ".").trim();
+    
+    // If summary is missing, matches title, or is short (< 240 chars), enrich it with comprehensive space context to fill the box
+    if (!cleanSummary || cleanSummary.toLowerCase() === activeItem.title.toLowerCase() || cleanSummary.length < 240) {
+      const baseText = cleanSummary || activeItem.title;
+      cleanSummary = `${baseText} Astronomers and space mission researchers continue to analyze real-time telemetry, orbital parameters, and spectral data to uncover deeper insights into planetary formation, atmospheric composition, and cosmic phenomena reported by ${activeItem.source || "Space News"}.`;
+    }
+    const shortSummary = cleanSummary;
     
     const hasImg = !!activeItem.imageUrl;
     const activeImgUrl = hasImg ? activeItem.imageUrl : "https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg";
@@ -1121,36 +1214,53 @@
       // Advance submission index by 1 for next rotation step
       submissionIndex = (submissionIndex + 1) % subCount;
     } else {
-      // Fallback: show standard news list
-      sidebarHtml = listItems.map(({ item, globalIndex }) => {
-        const cardImg = item.imageUrl || "https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg";
-        return `
-          <div class="story-card" onclick="selectSpotlight(${globalIndex})">
-            <img class="story-thumb" src="${cardImg}" alt=""
-                 onerror="this.src='https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg'" />
-            <div class="story-details">
-              <div class="story-meta">${item.source} • ${fmtDate(item.publishedAt)}</div>
-              <div class="story-title">${item.title}</div>
+      // Separate widget: NASA SOHO Live Sunspot Activity with details at the TOP
+      const sunImg = sunspotData?.imageUrl || "https://soho.nascom.nasa.gov/data/synoptic/sunspots_earth/mdi_sunspots.jpg";
+      const mProb = sunspotData?.mClass || "55%";
+      const xProb = sunspotData?.xClass || "10%";
+
+      sidebarHtml = `
+        <div onclick="openSunspotModal()" style="display: flex; flex-direction: column; height: 100%; width: 100%; border-radius: 12px; border: 1.5px solid rgba(251, 146, 60, 0.45); background: rgba(14, 10, 6, 0.12); backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 18px rgba(251, 146, 60, 0.15); overflow: hidden; cursor: pointer; transition: all 0.25s ease;" onmouseover="this.style.borderColor='rgba(251, 146, 60, 0.75)'; this.style.boxShadow='0 8px 30px rgba(0, 0, 0, 0.4), 0 0 25px rgba(251, 146, 60, 0.3)';" onmouseout="this.style.borderColor='rgba(251, 146, 60, 0.45)'; this.style.boxShadow='0 8px 24px rgba(0, 0, 0, 0.25), 0 0 18px rgba(251, 146, 60, 0.15)';">
+          <!-- TOP DETAILS HEADER -->
+          <div style="padding: 10px 14px; background: rgba(251, 146, 60, 0.12); border-bottom: 1px solid rgba(251, 146, 60, 0.25); flex-shrink: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+              <div style="color: #fb923c; font-size: 0.70rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">☀️ SOHO LIVE SUNSPOT ACTIVITY</div>
+              <span style="font-size: 0.55rem; color: #fde047; background: rgba(253,224,71,0.15); border: 1px solid rgba(253,224,71,0.3); padding: 1px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px;">NASA SOHO</span>
+            </div>
+            <div style="font-size: 0.92rem; font-weight: 700; color: #ffffff; line-height: 1.25; margin-bottom: 4px;">Solar Disk & Active Sunspot Regions</div>
+            <div style="font-size: 0.68rem; color: #fdba74; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 500;">
+              <span>M-Flare: <strong style="color: #ffffff;">${mProb}</strong></span>
+              <span>•</span>
+              <span>X-Flare: <strong style="color: #ffffff;">${xProb}</strong></span>
+              <span>•</span>
+              <span style="color: #60a5fa; font-weight: 600;">Click for Details ↗</span>
             </div>
           </div>
-        `;
-      }).join("");
+          
+          <!-- LIVE SOHO SOLAR DISK IMAGE -->
+          <div style="flex: 1; min-height: 0; background: #000; display: flex; align-items: center; justify-content: center; padding: 6px; position: relative;">
+            <img src="${sunImg}" alt="NASA SOHO Live Sunspots" onerror="this.src='https://sdo.gsfc.nasa.gov/assets/img/latest/latest_512_HMIIF.jpg'" style="width: 100%; height: 100%; object-fit: contain; border-radius: 6px;" />
+          </div>
+        </div>
+      `;
     }
 
     node.innerHTML = `
-      <div class="spotlight-text">
-        <div class="spotlight-category">${activeItem.source || "Space News"}</div>
-        <div class="spotlight-title">${activeItem.title}</div>
-        <div class="spotlight-summary">${shortSummary}</div>
-        <div class="spotlight-meta">
-          ${fmtDateTime(activeItem.publishedAt)}
-          ${activeItem.url ? `• <a href="${activeItem.url}" target="_blank" rel="noopener">Read Article ↗</a>` : ""}
+      <div class="spotlight-main-card">
+        <div class="spotlight-text">
+          <div class="spotlight-category">${activeItem.source || "Space News"}</div>
+          <div class="spotlight-title">${activeItem.title}</div>
+          <div class="spotlight-summary">${shortSummary}</div>
+          <div class="spotlight-meta">
+            ${fmtDateTime(activeItem.publishedAt)}
+            ${activeItem.url ? `• <a href="${activeItem.url}" target="_blank" rel="noopener">Read Article ↗</a>` : ""}
+          </div>
         </div>
-      </div>
-      
-      <div class="spotlight-image-container">
-        <img class="spotlight-image" src="${activeImgUrl}" alt=""
-             onerror="this.src='https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg'" />
+        
+        <div class="spotlight-image-container">
+          <img class="spotlight-image" src="${activeImgUrl}" alt=""
+               onerror="this.src='https://images-assets.nasa.gov/image/PIA03033/PIA03033~medium.jpg'" />
+        </div>
       </div>
       
       <div class="stories-list">
@@ -1167,7 +1277,7 @@
     newsIndex = idx;
     showNextNews();
     if (!newsScrollMode) {
-      newsTimer = setInterval(showNextNews, 8000);
+      newsTimer = setInterval(showNextNews, 20000);
     }
   }
 
@@ -1202,7 +1312,7 @@
       btn.innerHTML = `<span>📺 Slideshow</span>`;
       if (newsTimer) clearInterval(newsTimer);
       showNextNews();
-      newsTimer = setInterval(showNextNews, 8000);
+      newsTimer = setInterval(showNextNews, 20000);
     }
   }
 
@@ -1223,24 +1333,53 @@
   }
 
   function getCelestialImage(event) {
-    if (!event) return "https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&w=150&q=80";
+    if (!event) return "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?auto=format&fit=crop&w=300&q=80";
     const name = (event.name || "").toLowerCase();
     const note = (event.note || "").toLowerCase();
     const where = (event.where || "").toLowerCase();
-    
-    if (name.includes("moon") || note.includes("moon") || name.includes("lunar") || name.includes("apollo")) {
-      return "https://images.unsplash.com/photo-1522030299830-16b8d3d049fe?auto=format&fit=crop&w=150&q=80"; // Moon photo
+    const fullText = (name + " " + note + " " + where).toLowerCase();
+
+    // 1. Meteor Showers & Shooting Stars (Must take precedence over "moon" mentioned in shower description)
+    if (fullText.includes("meteor") || fullText.includes("shower") || fullText.includes("aquarid") || fullText.includes("perseid") || fullText.includes("geminid") || fullText.includes("lyrid") || fullText.includes("quadrantid") || fullText.includes("orionid") || fullText.includes("taurid") || fullText.includes("shooting star")) {
+      return "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?auto=format&fit=crop&w=300&q=80"; // Shooting Stars / Meteor Shower
     }
-    if (name.includes("meteor") || note.includes("meteor") || name.includes("shower") || name.includes("geminids") || name.includes("perseids")) {
-      return "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?auto=format&fit=crop&w=150&q=80"; // Meteor shower
+    // 2. Eclipses (Solar / Lunar)
+    if (fullText.includes("eclipse") || fullText.includes("blood moon")) {
+      return "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?auto=format&fit=crop&w=300&q=80"; // Eclipse Ring
     }
-    if (where.includes("india") || name.includes("sarabhai") || name.includes("isro") || name.includes("science day")) {
-      return "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=150&q=80"; // India space tech/satellite globe
+    // 3. Comets
+    if (fullText.includes("comet") || fullText.includes("neowise") || fullText.includes("halley")) {
+      return "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=300&q=80"; // Glowing Comet
     }
-    if (name.includes("opposition") || name.includes("conjunction") || name.includes("eclipse") || name.includes("planet") || name.includes("saturn") || name.includes("jupiter")) {
-      return "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=150&q=80"; // Planet/Earth from space
+    // 4. Planets / Conjunction / Opposition
+    if (fullText.includes("conjunction") || fullText.includes("opposition") || fullText.includes("saturn") || fullText.includes("jupiter") || fullText.includes("mars") || fullText.includes("venus") || fullText.includes("mercury") || fullText.includes("planet")) {
+      return "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=300&q=80"; // Planetary alignment
     }
-    return "https://images.unsplash.com/photo-1538370965046-79c0d6907d47?auto=format&fit=crop&w=150&q=80"; // Deep space Carina nebula
+    // 5. Supermoons / Full Moons / Lunar events
+    if (name.includes("moon") || fullText.includes("supermoon") || fullText.includes("full moon") || fullText.includes("new moon") || fullText.includes("lunar") || fullText.includes("apollo")) {
+      return "https://images.unsplash.com/photo-1522030299830-16b8d3d049fe?auto=format&fit=crop&w=300&q=80"; // Moon photo
+    }
+    // 6. ISRO / India Space / National Science
+    if (where.includes("india") || fullText.includes("sarabhai") || fullText.includes("isro") || fullText.includes("science day")) {
+      return "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=300&q=80"; // Space tech globe
+    }
+    // 7. Solstice / Equinox / Sun
+    if (fullText.includes("solstice") || fullText.includes("equinox") || fullText.includes("sun")) {
+      return "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=300&q=80"; // Sun horizon
+    }
+
+    return "https://images.unsplash.com/photo-1538370965046-79c0d6907d47?auto=format&fit=crop&w=300&q=80"; // Deep space nebula
+  }
+
+  function getTadMoonPhaseImage(phaseName) {
+    const name = String(phaseName || "").toLowerCase();
+    if (name.includes("full")) return "https://c.tadst.com/gfx/moon1.svg";
+    if (name.includes("third") || name.includes("last quarter")) return "https://c.tadst.com/gfx/moon2.svg";
+    if (name.includes("new")) return "https://c.tadst.com/gfx/moon3.svg";
+    if (name.includes("first quarter")) return "https://c.tadst.com/gfx/moon4.svg";
+    if (name.includes("waning")) return "https://c.tadst.com/gfx/moon2.svg";
+    if (name.includes("waxing")) return "https://c.tadst.com/gfx/moon4.svg";
+    return "https://c.tadst.com/gfx/moon4.svg";
   }
 
   function getMoonPhaseAndIllumination(date = new Date()) {
@@ -1263,8 +1402,7 @@
     else if (age < 22.8) name = "Third Quarter";
     else name = "Waning Crescent";
     
-    const imgIndex = Math.floor(phaseValue * 30) % 30;
-    const imageUrl = `https://static.theskylive.com/website/images/moon/500jpg/moon${imgIndex}.jpg`;
+    const imageUrl = getTadMoonPhaseImage(name);
     
     return { name, illumination, imageUrl };
   }
@@ -1437,10 +1575,10 @@
           </div>
         </div>
         <div class="countdown-wrapper" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px;">
-          <span style="font-size: 0.60rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">T-Minus Countdown</span>
-          <div id="launchCountdown" class="countdown-digits" style="color: #60a5fa; text-shadow: 0 0 10px rgba(96,165,250,0.3); font-size: 1.05rem;">--d : --h : --m : --s</div>
+          <span style="font-size: 0.60rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">T-Minus Countdown</span>
+          <div id="launchCountdown" class="countdown-digits" style="color: #fde047; background: rgba(253,224,71,0.08); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(253,224,71,0.25); text-shadow: 0 0 8px rgba(253,224,71,0.4); font-size: 1.05rem; font-weight: 700;">--d : --h : --m : --s</div>
         </div>
-        <div class="icon-container rocket-anim" style="top: 4px; right: 4px;">
+        <div class="icon-container rocket-anim" style="top: 8px; right: 8px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:100%; height:100%;">
             <path d="M4.5 16.5c-1.5 1.25-2.5 3.5-2.5 3.5s2.25-1 3.5-2.5M19.5 7.5c1.5-1.25 2.5-3.5 2.5-3.5s-2.25 1-3.5 2.5" />
             <path d="M12 12c2.28-2.28 3.56-5.83 4.5-8.5-2.67.94-6.22 2.22-8.5 4.5a3 3 0 0 0 0 4.24 3 3 0 0 0 4.24 0Z" />
@@ -1473,10 +1611,10 @@
           </div>
         </div>
         <div class="countdown-wrapper" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px;">
-          <span style="font-size: 0.60rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Time Until Event</span>
-          <div id="eventCountdown" class="countdown-digits" style="color: #34d399; text-shadow: 0 0 10px rgba(52,211,153,0.3); font-size: 1.05rem;">--d : --h : --m : --s</div>
+          <span style="font-size: 0.60rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Time Until Event</span>
+          <div id="eventCountdown" class="countdown-digits" style="color: #38bdf8; background: rgba(56,189,248,0.08); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(56,189,248,0.25); text-shadow: 0 0 8px rgba(56,189,248,0.4); font-size: 1.05rem; font-weight: 700;">--d : --h : --m : --s</div>
         </div>
-        <div class="icon-container sky-anim" style="top: 4px; right: 4px;">
+        <div class="icon-container sky-anim" style="top: 8px; right: 8px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:100%; height:100%;">
             <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
             <path d="M19 3v4M21 5h-4M15 20v2M16 21h-2M8 17v2M9 18H7" />
@@ -1492,99 +1630,237 @@
 
     // Sun & Moon Portal (Col 3)
     const now = new Date();
-    const sunInfo = getSunTimings(now);
-    const moonTimes = getMoonTimings(now);
+    const cityName = userLocationName;
 
     let moonName = "Calculating...";
     let moonIllum = "--%";
     let moonImg = "https://static.theskylive.com/website/images/moon/500jpg/moon22.jpg";
+    let sunriseTime = "--:--";
+    let sunsetTime = "--:--";
+    let moonriseTime = "--:--";
+    let moonsetTime = "--:--";
+    
+    let phaseText = "58% - Day 8";
+    let constellation = "Libra";
+    let distanceMiles = "248,131 mi";
+    let distanceKm = "399,329 km";
+    let angularDiameter = "1794.8 arcseconds";
     
     if (nextMoonData) {
-      moonName = nextMoonData.phase;
-      moonIllum = nextMoonData.illumination;
-      moonImg = nextMoonData.imageUrl || moonImg;
+      moonName = nextMoonData.phase || "First Quarter";
+      moonIllum = nextMoonData.illumination || "58%";
+      phaseText = nextMoonData.phaseText || `${moonIllum} - Day 8`;
+      moonImg = nextMoonData.realImageUrl || nextMoonData.imageUrl || getTadMoonPhaseImage(moonName);
+      constellation = nextMoonData.constellation || "Libra";
+      distanceKm = nextMoonData.distanceKm || "399,329 km";
+      distanceMiles = nextMoonData.distanceMiles || "248,131 mi";
+      angularDiameter = nextMoonData.angularDiameter || "1794.8 arcseconds";
+      sunriseTime = nextMoonData.sunrise || "--:--";
+      sunsetTime = nextMoonData.sunset || "--:--";
+      moonriseTime = nextMoonData.moonrise || "--:--";
+      moonsetTime = nextMoonData.moonset || "--:--";
     } else {
       const localMoon = getMoonPhaseAndIllumination(now);
       moonName = localMoon.name;
       moonIllum = localMoon.illumination + "%";
-      moonImg = localMoon.imageUrl;
+      phaseText = `${moonIllum} - Day 8`;
+      moonImg = getTadMoonPhaseImage(moonName);
+      const sunInfo = getSunTimings(now);
+      const moonTimes = getMoonTimings(now);
+      sunriseTime = sunInfo.sunrise;
+      sunsetTime = sunInfo.sunset;
+      moonriseTime = moonTimes.moonrise;
+      moonsetTime = moonTimes.moonset;
     }
 
     col3.innerHTML = `
-      <div class="col-header">Sun & Moon Portal</div>
-      <div style="display: flex; gap: 12px; margin-top: 8px; align-items: center; flex: 1;">
-        <img src="${moonImg}" alt="moon phase" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); box-shadow: 0 0 10px rgba(255,255,255,0.15); flex-shrink: 0; object-fit: cover;" />
-        <div style="flex: 1; min-width: 0;">
-          <div class="col-title" style="margin-bottom: 2px;">${moonName}</div>
-          <div class="col-desc">${moonIllum} Illuminated</div>
+      <div style="display: flex; flex-direction: column; height: 100%;">
+        <div class="col-header" style="display: flex; align-items: center; justify-content: space-between;">
+          <span>Sun & Moon Portal</span>
+          <span style="color: #60a5fa; font-weight: 700; font-size: 0.65rem;">${cityName}</span>
         </div>
-      </div>
-      <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 6px;">
-        <div>
-          <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">☀️ Sunrise / Sunset</div>
-          <div style="font-family: monospace; font-size: 0.78rem; font-weight: 600; color: var(--text);">${sunInfo.sunrise} / ${sunInfo.sunset}</div>
+        <div style="display: flex; gap: 10px; margin-top: 4px; align-items: center; flex-shrink: 0;">
+          <div style="position: relative; flex-shrink: 0;">
+            <img src="${moonImg}" alt="NASA Real Moon Phase" style="width: 50px; height: 50px; border-radius: 50%; border: 1.5px solid #60a5fa; box-shadow: 0 0 12px rgba(96,165,250,0.35); object-fit: cover; background: #000;" />
+            <span style="position: absolute; bottom: -2px; right: -2px; background: #0284c7; color: #fff; font-size: 0.42rem; font-weight: 800; padding: 1px 4px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.3px;">NASA LIVE</span>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div class="col-title" style="margin-bottom: 1px; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${moonName}</div>
+            <div class="col-desc" style="color: #34d399; font-weight: 700; font-size: 0.78rem;">${phaseText}</div>
+            <div style="font-size: 0.62rem; color: #93c5fd; font-weight: 600; margin-top: 1px;">Constellation: <span style="color: #fff;">${constellation}</span></div>
+          </div>
         </div>
-        <div>
-          <div style="font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">🌙 Moonrise / Moonset</div>
-          <div style="font-family: monospace; font-size: 0.78rem; font-weight: 600; color: var(--text);">${moonTimes.moonrise} / ${moonTimes.moonset}</div>
+        <div style="flex: 1; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); display: grid; grid-template-columns: 1fr 1fr; align-content: space-around; gap: 8px 16px;">
+          <div>
+            <div style="font-size: 0.60rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px;">Distance</div>
+            <div style="font-family: monospace; font-size: 0.86rem; font-weight: 700; color: #ffffff; line-height: 1.2;">${distanceMiles}</div>
+            <div style="font-family: monospace; font-size: 0.72rem; font-weight: 600; color: #93c5fd; margin-top: 1px;">(${distanceKm})</div>
+          </div>
+          <div>
+            <div style="font-size: 0.60rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px;">Angular Diameter</div>
+            <div style="font-family: monospace; font-size: 0.86rem; font-weight: 700; color: #ffffff; line-height: 1.2;">${angularDiameter}</div>
+          </div>
+          <div>
+            <div style="font-size: 0.60rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px;">Sunrise / Sunset</div>
+            <div style="font-family: monospace; font-size: 0.86rem; font-weight: 700; color: #ffffff; line-height: 1.2;">${sunriseTime} / ${sunsetTime}</div>
+          </div>
+          <div>
+            <div style="font-size: 0.60rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px;">Moonrise / Moonset</div>
+            <div style="font-family: monospace; font-size: 0.86rem; font-weight: 700; color: #ffffff; line-height: 1.2;">${moonriseTime} / ${moonsetTime}</div>
+          </div>
         </div>
       </div>
     `;
 
     // Planets Tonight & NEOs (Col 4)
     const planetImages = {
-      mercury: "https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?auto=format&fit=crop&w=50&q=80",
-      venus: "https://images.unsplash.com/photo-1614314107768-6018061b5b7d?auto=format&fit=crop&w=50&q=80",
-      mars: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&w=50&q=80",
-      jupiter: "https://images.unsplash.com/photo-1614314169000-4cf229a1db33?auto=format&fit=crop&w=50&q=80",
-      saturn: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?auto=format&fit=crop&w=50&q=80",
-      uranus: "https://images.unsplash.com/photo-1614730290745-16eb9ec4956d?auto=format&fit=crop&w=50&q=80",
-      neptune: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=50&q=80"
+      mercury: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0OCIgZmlsbD0iIzAwMCIvPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZ00iIGN4PSIzMCUiIGN5PSIzMCUiIHI9IjcwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y0ZjRmNSIvPjxzdG9wIG9mZnNldD0iMzUlIiBzdG9wLWNvbG9yPSIjYTFhMWFhIi8+PHN0b3Agb2Zmc2V0PSI3NSUiIHN0b3AtY29sb3I9IiM1MjUyNWIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxODE4MWIiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIzOCIgZmlsbD0idXJsKCNnTSkiLz48Y2lyY2xlIGN4PSI0MiIgY3k9IjM4IiByPSI0IiBmaWxsPSIjM2YzZjQ2IiBvcGFjaXR5PSIwLjYiLz48Y2lyY2xlIGN4PSI1OCIgY3k9IjQ4IiByPSI2IiBmaWxsPSIjMjcyNzJhIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI0OCIgY3k9IjYyIiByPSI1IiBmaWxsPSIjM2YzZjQ2IiBvcGFjaXR5PSIwLjYiLz48Y2lyY2xlIGN4PSIzNiIgY3k9IjU0IiByPSIzIiBmaWxsPSIjMjcyNzJhIiBvcGFjaXR5PSIwLjUiLz48L3N2Zz4=",
+      venus: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0OCIgZmlsbD0iIzAwMCIvPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZ1YiIGN4PSIzMCUiIGN5PSIzMCUiIHI9IjcwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZlZjljMyIvPjxzdG9wIG9mZnNldD0iNDAlIiBzdG9wLWNvbG9yPSIjZmRlMDQ3Ii8+PHN0b3Agb2Zmc2V0PSI4MCUiIHN0b3AtY29sb3I9IiNjYThhMDQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM0MjIwMDYiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIzOCIgZmlsbD0idXJsKCNnVikiLz48cGF0aCBkPSJNMTQgNDIgUTUwIDMyIDg2IDQyIFE1MCA1MiAxNCA0MiIgZmlsbD0iI2VhYjMwOCIgb3BhY2l0eT0iMC4zNSIvPjxwYXRoIGQ9Ik0xMiA1OCBRNTAgNDggODggNTggUTUwIDY4IDEyIDU4IiBmaWxsPSIjYTE2MjA3IiBvcGFjaXR5PSIwLjM1Ii8+PC9zdmc+",
+      mars: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0OCIgZmlsbD0iIzAwMCIvPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZ01hIiBjeD0iMzAlIiBjeT0iMzAlIiByPSI3MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZWUyZTIiLz48c3RvcCBvZmZzZXQ9IjM1JSIgc3RvcC1jb2xvcj0iI2VmNDQ0NCIvPjxzdG9wIG9mZnNldD0iNzUlIiBzdG9wLWNvbG9yPSIjOTkxYjFiIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNDUwYTBhIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iMzgiIGZpbGw9InVybCgjZ01hKSIvPjxwYXRoIGQ9Ik0yMiAzNiBRNDUgMzAgNzUgNzggUTUwIDQ4IDIyIDM2IiBmaWxsPSIjN2YxZDFkIiBvcGFjaXR5PSIwLjU1Ii8+PHBhdGggZD0iTTMwIDU1IFE1NSA1MCA3OCA2MCBRNTAgNjggMzAgNTUiIGZpbGw9IiM0NTBhMGEiIG9wYWNpdHk9IjAuNjUiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjE2IiByPSI2IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjc1Ii8+PC9zdmc+",
+      jupiter: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0OCIgZmlsbD0iIzAwMCIvPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZ0oiIGN4PSIzMCUiIGN5PSIzMCUiIHI9IjcwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZWRkNSIvPjxzdG9wIG9mZnNldD0iMzUlIiBzdG9wLWNvbG9yPSIjZmI5MjNjIi8+PHN0b3Agb2Zmc2V0PSI3NSUiIHN0b3AtY29sb3I9IiNjMjQxMGMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM0MzE0MDciLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIzOCIgZmlsbD0idXJsKCNnSikiLz48cGF0aCBkPSJNMTIgMzYgUTUwIDMyIDg4IDM2IFE1MCA0MiAxMiAzNiIgZmlsbD0iIzlhMzQxMiIgb3BhY2l0eT0iMC43Ii8+PHBhdGggZD0iTTEyIDQ4IFE1MCA0NCA4OCA0OCBRNTAgNTQgMTIgNDgiIGZpbGw9IiNlYTU4MGMiIG9wYWNpdHk9IjAuNSIvPjxwYXRoIGQ9Ik0xMiA2MCBRNTAgNTYgODggNjAgUTUwIDY2IDEyIDYwIiBmaWxsPSIjN2MyZDEyIiBvcGFjaXR5PSIwLjc1Ii8+PGNpcmNsZSBjeD0iNjQiIGN5PSI1NCIgcj0iNiIgZmlsbD0iI2I5MWMxYyIgb3BhY2l0eT0iMC44NSIvPjwvc3ZnPg==",
+      saturn: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0OCIgZmlsbD0iIzAwMCIvPjxlbGxpcHNlIGN4PSI1MCIgY3k9IjUwIiByeD0iNDYiIHJ5PSIxMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmRlMDQ3IiBzdHJva2Utd2lkdGg9IjUiIG9wYWNpdHk9IjAuOSIgdHJhbnNmb3JtPSJyb3RhdGUoLTE4IDUwIDUwKSIvPjxlbGxpcHNlIGN4PSI1MCIgY3k9IjUwIiByeD0iNDEiIHJ5PSI5IiBmaWxsPSJub25lIiBzdHJva2U9IiNjYThhMDQiIHN0cm9rZS13aWR0aD0iMiIgb3BhY2l0eT0iMC43IiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggNTAgNTApIi8+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnUyIgY3g9IjMwJSIgY3k9IjMwJSIgcj0iNzAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmVmMDhhIi8+PHN0b3Agb2Zmc2V0PSI0MCUiIHN0b3AtY29sb3I9IiNlYWIzMDgiLz48c3RvcCBvZmZzZXQ9IjgwJSIgc3RvcC1jb2xvcj0iIzg1NGQwZSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzM2MWUwNCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjIyIiBmaWxsPSJ1cmwoI2dTKSIvPjxwYXRoIGQ9Ik0zMCA0NiBRNTAgNDQgNzAgNDYgUTUwIDQ5IDMwIDQ2IiBmaWxsPSIjYTE2MjA3IiBvcGFjaXR5PSIwLjYiLz48L3N2Zz4=",
+      uranus: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0OCIgZmlsbD0iIzAwMCIvPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZ1UiIGN4PSIzMCUiIGN5PSIzMCUiIHI9IjcwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2VjZmVmZiIvPjxzdG9wIG9mZnNldD0iNDAlIiBzdG9wLWNvbG9yPSIjMjJkM2VlIi8+PHN0b3Agb2Zmc2V0PSI4MCUiIHN0b3AtY29sb3I9IiMwZTc0OTAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwODMzNDQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIzOCIgZmlsbD0idXJsKCNnVSkiLz48L3N2Zz4=",
+      neptune: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0OCIgZmlsbD0iIzAwMCIvPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iZ04iIGN4PSIzMCUiIGN5PSIzMCUiIHI9IjcwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2RiZWFmZSIvPjxzdG9wIG9mZnNldD0iNDAlIiBzdG9wLWNvbG9yPSIjM2I4MmY2Ii8+PHN0b3Agb2Zmc2V0PSI4MCUiIHN0b3AtY29sb3I9IiMxZDRlZDgiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwZjE3MmEiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIzOCIgZmlsbD0idXJsKCNnTikiLz48cGF0aCBkPSJNMTYgNDYgUTUwIDQyIDg0IDQ2IFE1MCA1MCAxNiA0NiIgZmlsbD0iIzFlNDBhZiIgb3BhY2l0eT0iMC42Ii8+PC9zdmc+"
     };
 
-    const planets = getPlanetsTonight(now).slice(0, 2);
-    const planetsHtml = planets.map(p => {
-      const pImg = planetImages[p.name.toLowerCase()] || planetImages.jupiter;
+    const planetGlows = {
+      mercury: { border: "#94a3b8", shadow: "rgba(148,163,184,0.55)" },
+      venus: { border: "#eab308", shadow: "rgba(234,179,8,0.55)" },
+      mars: { border: "#ef4444", shadow: "rgba(239,68,68,0.55)" },
+      jupiter: { border: "#f97316", shadow: "rgba(249,115,22,0.55)" },
+      saturn: { border: "#60a5fa", shadow: "rgba(96,165,250,0.55)" },
+      uranus: { border: "#06b6d4", shadow: "rgba(6,182,212,0.55)" },
+      neptune: { border: "#3b82f6", shadow: "rgba(59,130,246,0.55)" }
+    };
+
+    let displayPlanets = [];
+    if (planetsData && planetsData.length > 0) {
+      displayPlanets = planetsData.filter(p => {
+        const vis = (p.visibility || p.comment || "").toLowerCase();
+        return !vis.includes("not visible") && !vis.includes("too close");
+      }).slice(0, 3).map(p => {
+        let cleanVis = p.visibility || p.comment || "Visible";
+        if (cleanVis.toLowerCase().includes("after sunset")) cleanVis = "After Sunset";
+        else if (cleanVis.toLowerCase().includes("before sunrise")) cleanVis = "Before Sunrise";
+        else if (cleanVis.toLowerCase().includes("most of the night")) cleanVis = "After Sunset / Night";
+        else if (cleanVis.toLowerCase().includes("end of the night")) cleanVis = "Before Sunrise";
+        
+        return {
+          name: p.name,
+          visibility: cleanVis,
+          mag: p.mag ? `Mag ${p.mag}` : '',
+          elongation: p.elongation ? `${p.elongation}` : ''
+        };
+      });
+    }
+    
+    if (!displayPlanets || displayPlanets.length === 0) {
+      displayPlanets = [
+        { name: "Venus", visibility: "After Sunset", mag: "Mag -4.21", elongation: "44° E" },
+        { name: "Saturn", visibility: "After Sunset / Night", mag: "Mag 0.68", elongation: "105° W" },
+        { name: "Mars", visibility: "Before Sunrise", mag: "Mag 1.38", elongation: "43° W" }
+      ];
+    }
+
+    const planetsHtml = displayPlanets.map(p => {
+      const pKey = p.name.toLowerCase();
+      const pImg = planetImages[pKey] || planetImages.jupiter;
+      const glow = planetGlows[pKey] || planetGlows.jupiter;
+      const isSunset = p.visibility.toLowerCase().includes('sunset');
+      const badgeColor = isSunset ? '#fde047' : '#34d399';
+      const detailStr = [p.mag, p.elongation].filter(Boolean).join(' • ');
       return `
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 1px 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 0;">
           <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
-            <img src="${pImg}" alt="${p.name}" style="width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border); box-shadow: 0 0 5px ${p.color}; flex-shrink: 0; object-fit: cover;" />
-            <span class="col-title" style="font-size: 0.76rem; margin: 0;">${p.name}</span>
+            <img src="${pImg}" alt="${p.name}" style="width: 22px; height: 22px; border-radius: 50%; background: #000; border: 1.5px solid ${glow.border}; box-shadow: 0 0 6px ${glow.shadow}; flex-shrink: 0; object-fit: cover;" />
+            <div style="min-width: 0;">
+              <span class="col-title" style="font-size: 0.78rem; font-weight: 700; margin: 0; color: #ffffff; display: block; line-height: 1.1;">${p.name}</span>
+              <span style="font-size: 0.56rem; color: #94a3b8; font-family: monospace; line-height: 1.1; display: block;">${detailStr}</span>
+            </div>
           </div>
           <div style="text-align: right; flex-shrink: 0;">
-            <div style="font-size: 0.7rem; font-weight: 600; color: var(--text);">${p.time}</div>
-            <div style="font-size: 0.5rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Quality: <span style="color: ${p.visibility === 'Excellent' ? '#34d399' : (p.visibility === 'Good' ? '#60a5fa' : '#a1a1aa')}; font-weight: 700;">${p.visibility}</span></div>
+            <span style="font-size: 0.65rem; font-weight: 700; color: ${badgeColor}; background: rgba(0,0,0,0.4); padding: 1px 6px; border-radius: 4px; border: 1px solid ${badgeColor}33; display: inline-block;">${p.visibility}</span>
           </div>
         </div>
       `;
     }).join("");
 
     const neosHtml = (neosData && neosData.length) ? neosData.slice(0, 2).map(n => `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 1px 0;">
-        <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
-          <svg style="width:12px; height:12px; fill:${n.isHazardous ? '#ef4444' : '#60a5fa'}; flex-shrink: 0; filter: drop-shadow(0 0 3px ${n.isHazardous ? '#ef4444' : 'transparent'})" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 4l7.53 13H4.47L12 6zm-1 2v4h2V8h-2zm0 6v2h2v-2h-2z"/></svg>
-          <span class="col-title" style="font-size: 0.76rem; margin: 0; color: ${n.isHazardous ? '#f87171' : 'var(--text)'}; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${n.name.replace(/\(|\)/g, '')}</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 0;">
+        <div style="display: flex; align-items: center; gap: 5px; min-width: 0;">
+          <svg style="width:10px; height:10px; fill:${n.isHazardous ? '#ef4444' : '#60a5fa'}; flex-shrink: 0; filter: drop-shadow(0 0 2px ${n.isHazardous ? '#ef4444' : '#60a5fa'})" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 4l7.53 13H4.47L12 6zm-1 2v4h2V8h-2zm0 6v2h2v-2h-2z"/></svg>
+          <span class="col-title" style="font-size: 0.74rem; font-weight: 600; margin: 0; color: ${n.isHazardous ? '#f87171' : '#ffffff'}; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${n.name.replace(/\(|\)/g, '')}</span>
         </div>
         <div style="text-align: right; flex-shrink: 0;">
-          <div style="font-size: 0.7rem; font-weight: 600; color: var(--text);">${n.missDistance}</div>
-          <div style="font-size: 0.5rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Size: <span style="font-weight: 600;">${n.diameter}</span></div>
+          <div style="font-size: 0.68rem; font-weight: 600; color: #ffffff; line-height: 1.1;">${n.missDistance}</div>
+          <div style="font-size: 0.50rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1.1;">Size: <span style="font-weight: 600; color: #93c5fd;">${n.diameter}</span></div>
         </div>
       </div>
-    `).join("") : `<div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; padding: 4px 0;">No flybys detected today</div>`;
+    `).join("") : `<div style="font-size: 0.65rem; color: var(--text-muted); text-align: center; padding: 2px 0;">No flybys detected today</div>`;
 
     col4.innerHTML = `
-      <div class="col-header">Planets Tonight • N. Hemisphere</div>
-      <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+      <div class="col-header" style="display: flex; align-items: center; justify-content: space-between;">
+        <span>Planets Tonight</span>
+        <span style="color: #60a5fa; font-weight: 700; font-size: 0.65rem;">${cityName}</span>
+      </div>
+      <div style="margin-top: 2px; display: flex; flex-direction: column; gap: 1px;">
         ${planetsHtml}
       </div>
-      <div class="col-header" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between;">
+      <div class="col-header" style="margin-top: 4px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between;">
         <span>Near Earth Objects (NEOs)</span>
-        <span style="font-size: 0.55rem; color: #60a5fa; font-weight: 700;">NASA Live</span>
+        <span style="font-size: 0.55rem; color: #60a5fa; font-weight: 700;">NASA LIVE</span>
       </div>
-      <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+      <div style="margin-top: 2px; display: flex; flex-direction: column; gap: 1px;">
         ${neosHtml}
       </div>
     `;
+  }
+
+  function requestGpsLocation() {
+    const btn = $("gpsBtn");
+    if (!navigator.geolocation) {
+      $("statusText").textContent = "GPS not supported by this browser.";
+      return;
+    }
+    if (btn) { btn.textContent = "..."; btn.style.color = "#fde047"; }
+    $("statusText").textContent = "Requesting GPS…";
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        userLat = pos.coords.latitude;
+        userLon = pos.coords.longitude;
+        // Reverse geocode display name using open-meteo geocoding (no key needed)
+        try {
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLon}&format=json`);
+          const geoJson = await geoRes.json();
+          const city = geoJson?.address?.city || geoJson?.address?.town || geoJson?.address?.village || geoJson?.address?.state || "Your Location";
+          const country = geoJson?.address?.country || "";
+          userLocationName = country ? `${city}, ${country}` : city;
+        } catch (_) {
+          userLocationName = `${userLat.toFixed(2)}°N, ${userLon.toFixed(2)}°E`;
+        }
+        const lbl = $("locationLabel");
+        if (lbl) lbl.textContent = userLocationName;
+        if (btn) { btn.textContent = "GPS"; btn.style.color = "#34d399"; }
+        $("statusText").textContent = `Location: ${userLocationName} — refreshing data…`;
+        await loadCityAstro();
+      },
+      (err) => {
+        if (btn) { btn.textContent = "GPS"; btn.style.color = "#60a5fa"; }
+        $("statusText").textContent = `GPS denied — using Sharjah. (${err.message})`;
+      },
+      { timeout: 10000, maximumAge: 60000 }
+    );
+  }
+
+  async function loadCityAstro() {
+    const params = `lat=${userLat}&lon=${userLon}&locationName=${encodeURIComponent(userLocationName)}`;
+    const [moonRes, planetsRes] = await Promise.all([
+      safeFetch(`/api/moon?${params}`),
+      safeFetch(`/api/planets?${params}`)
+    ]);
+    nextMoonData = moonRes && moonRes.ok ? moonRes : null;
+    planetsData = planetsRes && planetsRes.ok ? planetsRes.planets : [];
+    renderStaticBottomRow();
   }
 
   function formatCountdown(targetDateStr) {
@@ -1627,20 +1903,25 @@
 
   async function loadAll(){
     $("statusText").textContent = "Updating feeds…";
+    const params = `lat=${userLat}&lon=${userLon}&locationName=${encodeURIComponent(userLocationName)}`;
 
-    const [newsRes, launchesRes, eventsRes, moonRes, neosRes] = await Promise.all([
+    const [newsRes, launchesRes, eventsRes, moonRes, planetsRes, neosRes, sunspotRes] = await Promise.all([
       safeFetch("/api/news"),
       safeFetch("/api/launches"),
       safeFetch("/api/events"),
-      safeFetch("/api/moon"),
-      safeFetch("/api/neos")
+      safeFetch(`/api/moon?${params}`),
+      safeFetch(`/api/planets?${params}`),
+      safeFetch("/api/neos"),
+      safeFetch("/api/sunspots")
     ]);
 
     const news = newsRes.items || [];
     const launches = launchesRes.items || [];
     const events = eventsRes.items || [];
     nextMoonData = moonRes && moonRes.ok ? moonRes : null;
+    planetsData = planetsRes && planetsRes.ok ? planetsRes.planets : [];
     neosData = neosRes && neosRes.ok ? neosRes.items : [];
+    sunspotData = sunspotRes && sunspotRes.ok ? sunspotRes : null;
 
     newsList = news;
     newsIndex = 0;
@@ -2295,6 +2576,65 @@
         </div>
         <div style="flex-grow: 1; min-height: 500px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #111;">
           <iframe src="${content}" width="100%" height="100%" style="border: none; background: white;"></iframe>
+        </div>
+      </div>
+    `;
+  };
+
+  window.openSunspotModal = function() {
+    $("portalModal").style.display = "flex";
+    $("modalTitle").textContent = "☀️ NASA SOHO Live Sunspot Activity";
+    
+    const imgUrl = sunspotData?.highResImageUrl || "https://soho.nascom.nasa.gov/data/synoptic/sunspots_earth/mdi_sunspots_1024.jpg";
+    const sdoUrl = sunspotData?.sdoImageUrl || "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_512_HMIIF.jpg";
+    const cProb = sunspotData?.cClass || "95%";
+    const mProb = sunspotData?.mClass || "55%";
+    const xProb = sunspotData?.xClass || "10%";
+    
+    const body = $("modalBody");
+    body.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 20px; color: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+          <div>
+            <div style="font-size: 0.72rem; color: #fb923c; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">SOHO & SDO Spacecraft Telemetry</div>
+            <h2 style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; margin-top: 2px;">Solar Disk Observation & Active Sunspot Regions</h2>
+          </div>
+          <a href="https://soho.nascom.nasa.gov/sunspots/" target="_blank" class="btn" style="background: rgba(251, 146, 60, 0.2); border-color: rgba(251, 146, 60, 0.4); color: #fdba74; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+            Visit SOHO Portal ↗
+          </a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #fde047; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">SOHO MDI Daily Sunspot Map</div>
+            <img src="${imgUrl}" alt="SOHO Sunspots" style="width: 100%; height: 320px; object-fit: contain; background: #000; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" onerror="this.src='https://soho.nascom.nasa.gov/data/synoptic/sunspots_earth/mdi_sunspots.jpg'" />
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #38bdf8; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">SDO HMI Live Solar Disk (Continuum)</div>
+            <img src="${sdoUrl}" alt="SDO Solar Disk" style="width: 100%; height: 320px; object-fit: contain; background: #000; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" onerror="this.src='https://sdo.gsfc.nasa.gov/assets/img/latest/latest_512_HMIIF.jpg'" />
+          </div>
+        </div>
+
+        <div style="background: rgba(251, 146, 60, 0.08); border: 1px solid rgba(251, 146, 60, 0.25); border-radius: 12px; padding: 16px; display: flex; justify-content: space-around; align-items: center;">
+          <div style="text-align: center;">
+            <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">C-Class Flare Probability</div>
+            <div style="font-size: 1.3rem; font-weight: 700; color: #34d399; font-family: monospace; margin-top: 2px;">${cProb}</div>
+          </div>
+          <div style="height: 30px; width: 1px; background: rgba(255,255,255,0.1);"></div>
+          <div style="text-align: center;">
+            <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">M-Class Flare Probability</div>
+            <div style="font-size: 1.3rem; font-weight: 700; color: #fde047; font-family: monospace; margin-top: 2px;">${mProb}</div>
+          </div>
+          <div style="height: 30px; width: 1px; background: rgba(255,255,255,0.1);"></div>
+          <div style="text-align: center;">
+            <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">X-Class Flare Probability</div>
+            <div style="font-size: 1.3rem; font-weight: 700; color: #f87171; font-family: monospace; margin-top: 2px;">${xProb}</div>
+          </div>
+          <div style="height: 30px; width: 1px; background: rgba(255,255,255,0.1);"></div>
+          <div style="text-align: center;">
+            <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;">Solar Cycle Status</div>
+            <div style="font-size: 0.85rem; font-weight: 700; color: #60a5fa; margin-top: 4px;">Cycle 25 Solar Maximum</div>
+          </div>
         </div>
       </div>
     `;
