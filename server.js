@@ -2,12 +2,16 @@ const express = require("express");
 const cors = require("cors");
 const { XMLParser } = require("fast-xml-parser");
 const fs = require("fs");
-const path = require("path");
+const path = require("app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+path");
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "25mb" }));
 app.use(express.static(".")); // serves index.html + assets
+
 
 const PORT = 8080;
 
