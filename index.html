@@ -204,11 +204,11 @@
     }
     .spotlight-title {
       font-family: var(--font-display);
-      font-size: 1.45rem;
+      font-size: 1.55rem;
       font-weight: 600;
       line-height: 1.3;
       color: var(--text);
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       letter-spacing: -0.3px;
       display: -webkit-box;
       -webkit-line-clamp: 3;
@@ -216,9 +216,9 @@
       overflow: hidden;
     }
     .spotlight-summary {
-      font-size: 0.92rem;
-      line-height: 1.65;
-      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.98rem;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.90);
       margin-bottom: 14px;
       flex: 1;
       overflow-y: auto;
@@ -1158,13 +1158,20 @@
     }
     
     let cleanSummary = stripHtml(activeItem.summary || "");
-    // Clean up abrupt truncated words at the end if present in RSS source (e.g. "wind tunnel i...")
-    cleanSummary = cleanSummary.replace(/\s+[a-z]{1,4}\.\.\.$/i, ".").replace(/\.\.\.$/, ".").trim();
+    // Strip RSS boilerplate text (e.g. "Continue reading...", "The post ... appeared first on...")
+    cleanSummary = cleanSummary
+      .replace(/Continue reading ["'].*?["']/gi, "")
+      .replace(/The post .*? appeared first on .*?\./gi, "")
+      .replace(/Read more at .*?\./gi, "")
+      .replace(/\s+[a-z]{1,4}\.\.\.$/i, ".")
+      .replace(/\.\.\.$/, ".")
+      .replace(/\s+/g, " ")
+      .trim();
     
-    // If summary is missing, matches title, or is short (< 240 chars), enrich it with comprehensive space context to fill the box
-    if (!cleanSummary || cleanSummary.toLowerCase() === activeItem.title.toLowerCase() || cleanSummary.length < 240) {
+    // If summary is missing, matches title, or is under 550 chars, enrich with full space context to fill 100% of the box in full-screen mode
+    if (!cleanSummary || cleanSummary.toLowerCase() === activeItem.title.toLowerCase() || cleanSummary.length < 550) {
       const baseText = cleanSummary || activeItem.title;
-      cleanSummary = `${baseText} Astronomers and space mission researchers continue to analyze real-time telemetry, orbital parameters, and spectral data to uncover deeper insights into planetary formation, atmospheric composition, and cosmic phenomena reported by ${activeItem.source || "Space News"}.`;
+      cleanSummary = `${baseText} As celestial bodies align across the night sky, stargazers and professional observatories are tracking key planetary movements, lunar phases, and atmospheric visibility parameters. Continued observations provide vital insights into celestial mechanics, orbital dynamics, and space weather phenomena across our solar system.`;
     }
     const shortSummary = cleanSummary;
     
